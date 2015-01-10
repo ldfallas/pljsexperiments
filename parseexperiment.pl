@@ -1,6 +1,10 @@
 use_module(library(pure_io)).
 use_module(library(charsio)).
 
+/** Added for SWI Prolog 7 compatibility */
+:- set_prolog_flag(double_quotes, codes).
+
+
 number(tok(number, [Digit|Digits], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
 	[CurrentPosition, PreTokenWhitespace],
 	digit(Digit),
