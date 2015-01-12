@@ -1,10 +1,33 @@
-:- module(jsparser, [js_lex_string/2]).
+:- module(parserexperiment, [js_lex_string/2]).
+
+
 
 use_module(library(pure_io)).
 use_module(library(charsio)).
 
-/** Added for SWI Prolog 7 compatibility */
+/* Added for SWI Prolog 7 compatibility */
 :- set_prolog_flag(double_quotes, codes).
+
+string_tok(tok(string, [QuotesChar|Chars], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
+	[CurrentPosition, PreTokenWhitespace],
+        "\"", {[QuotesChar|_] = "\""},
+        string_literal_chars(Chars),
+        "\"",
+        {
+           length(Chars, ContentLength),
+           NewPosition is CurrentPosition + ContentLength + 1
+        }.
+
+string_literal_char(Char) -->
+        [Char],
+        { \+ ([QuotesChar|_] = "\"", Char = QuotesChar) }.
+
+string_literal_chars([Char|Chars]) -->
+   string_literal_char(Char),
+   string_literal_chars(Chars).
+
+string_literal_chars("\""),"\"" --> "\"".
+
 
 
 number(tok(number, [Digit|Digits], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
@@ -64,11 +87,11 @@ not_end_of_line_chars([]) --> [].
 tok(Tok) -->
 	word(Word),
 	{
-	    js_keyword(Word, Tok) ;
+	    js_keyword(Word, Tok),! ;
 	    (
-		tok(id, Text, _,_) = Word,
-		\+ is_jskeyword(Text),
-	        Tok = Word
+		/*tok(id, Text, _,_) = Word,
+		\+ is_jskeyword(Text),*/
+	        Tok = Word, !
 	    )
 	}.
 
@@ -82,6 +105,9 @@ tok(tok(punctuator, Value, CurrentPosition, PreTokenWs)), [NewPosition, []] -->
 tok(Number) -->
 	number(Number).
 
+tok(String) -->
+	string_tok(String).
+
 js_punctuator([Value]) -->
 	[Value],
 	{
@@ -90,12 +116,22 @@ js_punctuator([Value]) -->
 
 is_js_punctuator(";").
 is_js_punctuator("=").
+is_js_punctuator("(").
+is_js_punctuator(")").
+is_js_punctuator("{").
+is_js_punctuator("}").
+is_js_punctuator(":").
+is_js_punctuator(",").
 
 js_keyword(tok(id, Text, Position, Lex), Token) :-
 	is_jskeyword(Text),
 	Token = tok(keyword, Text, Position,Lex).
 
 is_jskeyword("var").
+is_jskeyword("function").
+is_jskeyword("return").
+is_jskeyword("true").
+is_jskeyword("false").
 
 toks([Tok|[Sep|Rest]]) -->
 	tok(Tok),
@@ -137,17 +173,10 @@ ws --> [X],{ code_type(X, space) }.
 wss(Count) -->
 	ws,
 	wss(Subcount),
-        { Count is Subcount + 1
-	  }.
+        { 
+          Count is Subcount + 1, !
+	}.
 wss(0) --> [].
-
-number_list([F|R]) -->
-	number(F),
-	whitespace(W),
-	number_list(R).
-number_list([]) --> [].
-number_list([F]) -->
-	number(F), \+ [_].
 
 without_ws([ws(_)|Rest],Other) :-
 	without_ws(Rest,Other).
