@@ -18,6 +18,19 @@ test_lex_string_literal :-
    js_lex_string("\"hola\"",
 		 [ tok(string, "\"hola\"", _,_)]).
 
+test_lex_operator_literal :-
+   js_lex_string("1+2*3/4-5",
+		 [ 
+                 tok(number, "1", _,_),
+                 tok(punctuator, "+", _,_),
+                 tok(number, "2", _,_),
+                 tok(punctuator, "*", _,_),
+                 tok(number, "3", _,_),
+                 tok(punctuator, "/", _,_),
+                 tok(number, "4", _,_),
+                 tok(punctuator, "-", _,_),
+                 tok(number, "5", _,_)
+                 ]).
 
 
 test_lex_var_decl_with_init_with_comments :-
@@ -80,8 +93,10 @@ run_tests :-
         run_test(test_lex_string_literal),
         run_test(test_lex_var_decl_with_init),
         run_test(test_lex_var_decl_with_init_with_comments),
-        run_test(test_lex_simple_obj_literal).
+        run_test(test_lex_simple_obj_literal),
+        run_test(test_lex_operator_literal).
+
 run_tests.
 
-member([X|Rest],X).
+member([X|_],X).
 member([_|Rest],X) :- member(Rest,X).

@@ -1,7 +1,5 @@
 :- module(parserexperiment, [js_lex_string/2]).
 
-
-
 use_module(library(pure_io)).
 use_module(library(charsio)).
 
@@ -28,8 +26,6 @@ string_literal_chars([Char|Chars]) -->
 
 string_literal_chars("\""),"\"" --> "\"".
 
-
-
 number(tok(number, [Digit|Digits], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
 	[CurrentPosition, PreTokenWhitespace],
 	digit(Digit),
@@ -47,7 +43,7 @@ digit(Digit) --> [Digit],
 digits([Digit|Digits]) -->
 	digit(Digit),
 	digits(Digits).
-digits([Digit]) --> digit(Digit).
+digits([]) --> [].
 
 word(tok(id,[Letter|Letters], CurrentPosition, PreTokenWs )), [NewPosition, []] -->
 	[CurrentPosition, PreTokenWs],
@@ -122,6 +118,10 @@ is_js_punctuator("{").
 is_js_punctuator("}").
 is_js_punctuator(":").
 is_js_punctuator(",").
+is_js_punctuator("+").
+is_js_punctuator("-").
+is_js_punctuator("*").
+is_js_punctuator("/").
 
 js_keyword(tok(id, Text, Position, Lex), Token) :-
 	is_jskeyword(Text),
@@ -153,7 +153,7 @@ lexical_whitespace, [NewPosition, NewWhitespace] -->
 	[NewPosition, _].
 
 lex_whitespace_elements([WhiteSpaceElement|Rest]) -->
-	(whitespace(WhiteSpaceElement)
+	(whitespace(WhiteSpaceElement), !
 	 ; line_comment(WhiteSpaceElement)),
 	lex_whitespace_elements(Rest).
 
