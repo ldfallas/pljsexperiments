@@ -10,6 +10,17 @@ test_lex_id_with_keyword_prefix_decl :-
    js_lex_string("varx",
 		 [ tok(id, "varx", _,_)]).
 
+
+test_lex_floating_point_number_1 :-
+   js_lex_string("34.45",
+		 [ tok(number, "34.45", _,_)]).
+
+test_lex_dotted_id :-
+   js_lex_string("a.b",
+		 [ tok(id, "a", _,_),
+                   tok(punctuator, ".", _,_),
+                   tok(id, "b", _,_) ]).
+
 test_lex_numeric_literal :-
    js_lex_string("234",
 		 [ tok(number, "234", _,_)]).
@@ -94,7 +105,9 @@ run_tests :-
         run_test(test_lex_var_decl_with_init),
         run_test(test_lex_var_decl_with_init_with_comments),
         run_test(test_lex_simple_obj_literal),
-        run_test(test_lex_operator_literal).
+        run_test(test_lex_operator_literal),
+        run_test(test_lex_dotted_id),
+        run_test(test_lex_floating_point_number_1).
 
 run_tests.
 

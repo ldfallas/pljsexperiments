@@ -29,12 +29,14 @@ string_literal_chars("\""),"\"" --> "\"".
 number(tok(number, [Digit|Digits], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
 	[CurrentPosition, PreTokenWhitespace],
 	digit(Digit),
-	digits(Digits),
-	{  /*number_codes(Num, [Digit|Digits]),*/
+	digits(IntDigits),
+        ((".", digits(Decimals), { append(".", Decimals, PointAndDecimals),
+                                   append(IntDigits, PointAndDecimals, Digits) })
+          ; ( [], {Decimals = [], Digits = IntDigits})),
+	{  
 	   length(Digits, NCount),
 	   Count is NCount + 1,
 	   NewPosition is Count + CurrentPosition
-
 	}.
 
 digit(Digit) --> [Digit],
@@ -118,6 +120,7 @@ is_js_punctuator("{").
 is_js_punctuator("}").
 is_js_punctuator(":").
 is_js_punctuator(",").
+is_js_punctuator(".").
 is_js_punctuator("+").
 is_js_punctuator("-").
 is_js_punctuator("*").
