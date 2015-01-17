@@ -8,23 +8,25 @@ use_module(library(charsio)).
 
 string_tok(tok(string, [QuotesChar|Chars], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
 	[CurrentPosition, PreTokenWhitespace],
-        "\"", {[QuotesChar|_] = "\""},
-        string_literal_chars(Chars),
-        "\"",
+        ( ("\"", {[QuotesChar|_] = "\""}, !) ;
+          ("\'", {[QuotesChar|_] = "'"}, !) ),
+        string_literal_chars(Chars, QuotesChar),
+        [QuotesChar],
         {
            length(Chars, ContentLength),
            NewPosition is CurrentPosition + ContentLength + 1
         }.
 
-string_literal_char(Char) -->
+string_literal_char(Char, QuotesChar) -->
         [Char],
-        { \+ ([QuotesChar|_] = "\"", Char = QuotesChar) }.
+        { \+ (Char = QuotesChar) }.
 
-string_literal_chars([Char|Chars]) -->
-   string_literal_char(Char),
-   string_literal_chars(Chars).
+string_literal_chars([Char|Chars], QuotesChar) -->
+   string_literal_char(Char, QuotesChar),
+   string_literal_chars(Chars, QuotesChar).
 
-string_literal_chars("\""),"\"" --> "\"".
+string_literal_chars([QuotesChar], QuotesChar),[QuoteChar] --> [QuotesChar].
+
 
 number(tok(number, [Digit|Digits], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
 	[CurrentPosition, PreTokenWhitespace],
@@ -32,7 +34,7 @@ number(tok(number, [Digit|Digits], CurrentPosition, PreTokenWhitespace)), [NewPo
 	digits(IntDigits),
         ((".", digits(Decimals), { append(".", Decimals, PointAndDecimals),
                                    append(IntDigits, PointAndDecimals, Digits) })
-          ; ( [], {Decimals = [], Digits = IntDigits})),
+          ; ( [], { Digits = IntDigits})),
 	{  
 	   length(Digits, NCount),
 	   Count is NCount + 1,

@@ -29,6 +29,10 @@ test_lex_string_literal :-
    js_lex_string("\"hola\"",
 		 [ tok(string, "\"hola\"", _,_)]).
 
+test_lex_string_literal_single_quote :-
+   js_lex_string("\'hola\'",
+		 [ tok(string, "\'hola\'", _,_)]).
+
 test_lex_operator_literal :-
    js_lex_string("1+2*3/4-5",
 		 [ 
@@ -102,6 +106,7 @@ run_tests :-
         run_test(test_lex_id_with_keyword_prefix_decl ),
         run_test(test_lex_numeric_literal),
         run_test(test_lex_string_literal),
+        run_test(test_lex_string_literal_single_quote),
         run_test(test_lex_var_decl_with_init),
         run_test(test_lex_var_decl_with_init_with_comments),
         run_test(test_lex_simple_obj_literal),
