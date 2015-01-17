@@ -10,6 +10,21 @@ test_lex_id_with_keyword_prefix_decl :-
    js_lex_string("varx",
 		 [ tok(id, "varx", _,_)]).
 
+test_lex_id1 :-
+   js_lex_string("foo",
+		 [ tok(id, "foo", _,_)]).
+test_lex_id2 :-
+   js_lex_string("foo1",
+		 [ tok(id, "foo1", _,_)]).
+test_lex_id3 :-
+   js_lex_string("$foo1",
+		 [ tok(id, "$foo1", _,_)]).
+test_lex_id4 :-
+   js_lex_string("$",
+		 [ tok(id, "$", _,_)]).
+test_lex_id5 :-
+   js_lex_string("an_id_for",
+		 [ tok(id, "an_id_for", _,_)]).
 
 test_lex_floating_point_number_1 :-
    js_lex_string("34.45",
@@ -104,6 +119,11 @@ run_test(Test) :-
 run_tests :-
         run_test(test_lex_var_decl),
         run_test(test_lex_id_with_keyword_prefix_decl ),
+        run_test(test_lex_id1),
+        run_test(test_lex_id2),
+        run_test(test_lex_id3),
+        run_test(test_lex_id4),
+        run_test(test_lex_id5),
         run_test(test_lex_numeric_literal),
         run_test(test_lex_string_literal),
         run_test(test_lex_string_literal_single_quote),

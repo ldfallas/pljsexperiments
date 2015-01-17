@@ -25,7 +25,7 @@ string_literal_chars([Char|Chars], QuotesChar) -->
    string_literal_char(Char, QuotesChar),
    string_literal_chars(Chars, QuotesChar).
 
-string_literal_chars([QuotesChar], QuotesChar),[QuoteChar] --> [QuotesChar].
+string_literal_chars([QuotesChar], QuotesChar),[QuotesChar] --> [QuotesChar].
 
 
 number(tok(number, [Digit|Digits], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
@@ -63,6 +63,26 @@ letters([First|Rest]) -->
 	letters(Rest).
 letters([]) --> [].
 
+
+/****/
+identifier(tok(id,[InitialCharacter|Letters], CurrentPosition, PreTokenWs )), [NewPosition, []] -->
+	[CurrentPosition, PreTokenWs],
+	initialIdCharacter(InitialCharacter),
+	letters(Letters),
+	{  Word = [InitialCharacter|Letters],
+	   length(Word, WordLength),
+	   NewPosition is (CurrentPosition + WordLength) }.
+
+initialIdCharacter(L) --> [L], { code_type(L, alpha)  }.
+initialIdCharacter(L) --> "$", { "$" = [L] }.
+initialIdCharacter(L) --> "_", { "_" = [L] }.
+letters([First|Rest]) -->
+	(initialIdCharacter(First) ; digit(First)),
+	letters(Rest).
+letters([]) --> [].
+/***/
+
+
 line_comment(line_comment(Content, CurrentPosition)), [NewPosition, Lex] -->
         [CurrentPosition, Lex],
 	"//",
@@ -85,7 +105,7 @@ not_end_of_line_chars([Char|Chars]) -->
 not_end_of_line_chars([]) --> [].
 
 tok(Tok) -->
-	word(Word),
+	identifier(Word),
 	{
 	    js_keyword(Word, Tok),! ;
 	    (
