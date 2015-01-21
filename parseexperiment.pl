@@ -49,6 +49,8 @@ digits([Digit|Digits]) -->
 	digits(Digits).
 digits([]) --> [].
 
+/*
+
 word(tok(id,[Letter|Letters], CurrentPosition, PreTokenWs )), [NewPosition, []] -->
 	[CurrentPosition, PreTokenWs],
 	letter(Letter),
@@ -62,6 +64,7 @@ letters([First|Rest]) -->
 	letter(First),
 	letters(Rest).
 letters([]) --> [].
+*/
 
 
 /****/
@@ -103,6 +106,22 @@ not_end_of_line_chars([Char|Chars]) -->
 	{ \+ code_type(Char,end_of_line) }.
 
 not_end_of_line_chars([]) --> [].
+
+block_comment(block_comment(Content, CurrentPosition)), [NewPosition,Lex] -->
+    [CurrentPosition, Lex],
+    "/*",
+    not_end_block_comment_chars(Content),
+    "*/", {
+          length(Content, ContentSize),
+	  Size is 4 + ContentSize ,
+	  NewPosition is CurrentPosition + Size
+    }.
+
+not_end_block_comment_chars([]),"*/" --> "*/", { ! }.
+not_end_block_comment_chars([Char|Chars]) -->
+   [Char], 
+   not_end_block_comment_chars(Chars).
+not_end_block_comment_chars([]) --> [].
 
 tok(Tok) -->
 	identifier(Word),
@@ -179,13 +198,11 @@ lexical_whitespace, [NewPosition, NewWhitespace] -->
 
 lex_whitespace_elements([WhiteSpaceElement|Rest]) -->
 	(whitespace(WhiteSpaceElement), !
-	 ; line_comment(WhiteSpaceElement)),
+	 ; line_comment(WhiteSpaceElement), !
+         ; block_comment(WhiteSpaceElement)),
 	lex_whitespace_elements(Rest).
 
 lex_whitespace_elements([]) --> [].
-
-
-
 
 whitespace(ws(CurrentPosition)), [NewPosition, Lex] -->
 	[CurrentPosition, Lex],
