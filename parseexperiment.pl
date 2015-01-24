@@ -142,9 +142,9 @@ tok(Tok) -->
 tok(tok(punctuator, Value, CurrentPosition, Line, PreTokenWs)), 
     [NewPosition, Line, []] -->
 	[CurrentPosition, Line, PreTokenWs],
-	js_punctuator(Value),
+	js_punctuator(Value, Length),
 	{
-	    NewPosition is CurrentPosition + 1
+	    NewPosition is CurrentPosition + Length
 	}.
 
 tok(Number) -->
@@ -153,11 +153,26 @@ tok(Number) -->
 tok(String) -->
 	string_tok(String).
 
-js_punctuator([Value]) -->
+js_punctuator(Value, 2) -->
+      [Value1, Value2], 
+      { 
+        Value = [Value1, Value2], 
+        two_char_punctuator(Value)
+      }.
+
+js_punctuator([Value], 1) -->
 	[Value],
 	{
 	    is_js_punctuator([Value])
 	}.
+
+two_char_punctuator("+=").
+two_char_punctuator("-=").
+two_char_punctuator("/=").
+two_char_punctuator("*=").
+two_char_punctuator("<=").
+two_char_punctuator(">=").
+
 
 is_js_punctuator(";").
 is_js_punctuator("=").
@@ -198,7 +213,8 @@ toks2([Tok|Rest]) -->
 	lexical_whitespace,
 	tok(Tok),
 	toks2(Rest).
-toks2([]) --> [].
+toks2([]),[X,Y,Z] --> [X,Y,Z], \+ [_].
+toks2([]) -->[X,Line,Z], { throw(unexpectedInput(line(Line))) }.
 
 lexical_whitespace, [NewPosition, Line, NewWhitespace] -->
 	lex_whitespace_elements(NewWhitespace),

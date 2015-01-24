@@ -25,6 +25,9 @@ test_lex_id4 :-
 test_lex_id5 :-
    js_lex_string("an_id_for",
 		 [ tok(id, "an_id_for", _,_,_)]).
+test_lex_two_char_op :-
+   js_lex_string("+=",
+		 [ tok(punctuator, "+=", _,_,_)]).
 
 test_lex_floating_point_number_1 :-
    js_lex_string("34.45",
@@ -174,7 +177,8 @@ run_tests :-
         run_test(test_lex_operator_literal),
         run_test(test_lex_dotted_id),
         run_test(test_lex_floating_point_number_1),
-        run_test(test_lex_line_numbers1).
+        run_test(test_lex_line_numbers1),
+        run_test(test_lex_two_char_op).
 
 run_tests.
 
