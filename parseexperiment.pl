@@ -214,20 +214,22 @@ lex_whitespace_elements([]) --> [].
 
 whitespace(ws(CurrentPosition)), [NewPosition, NewLine, Lex] -->
 	[CurrentPosition,Line, Lex],
-	ws,
-	wss(Subcount),
+	ws(AddedLines),
+	wss(Subcount,NewLines),
         { Count is Subcount + 1,
 	  NewPosition is CurrentPosition + Count,
-          NewLine is Line
+          NewLine is Line + NewLines + AddedLines
 	}.
-ws --> [X],{ code_type(X, space) }.
-wss(Count) -->
-	ws,
-	wss(Subcount),
+ws(1) --> [X],{ code_type(X, newline), ! }.
+ws(0) --> [X],{ code_type(X, space) }.
+wss(Count, Lines) -->
+	ws(AddedLines),
+	wss(Subcount, NewLines),
         { 
+          Lines is  NewLines + AddedLines, 
           Count is Subcount + 1, !
 	}.
-wss(0) --> [].
+wss(0, 0) --> [].
 
 without_ws([ws(_)|Rest],Other) :-
 	without_ws(Rest,Other).

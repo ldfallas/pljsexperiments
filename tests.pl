@@ -136,13 +136,13 @@ test_lex_line_numbers1 :-
    2,
    
    3]",
-		 [ tok(punctuator, "[", _,_,_),
-                   tok(number, "1", _,_,_),
-                   tok(punctuator, ",", _,_,_),
-                   tok(number, "2", _,_,_),
-                   tok(punctuator, ",", _,_,_),
-                   tok(number, "3", _,_,_),
-                   tok(punctuator, "]", _,_,_)
+		 [ tok(punctuator, "[", _,1,_),
+                   tok(number, "1", _,1,_),
+                   tok(punctuator, ",", _,1,_),
+                   tok(number, "2", _,2,_),
+                   tok(punctuator, ",", _,2,_),
+                   tok(number, "3", _,4,_),
+                   tok(punctuator, "]", _,4,_)
                     ]).
 
 
