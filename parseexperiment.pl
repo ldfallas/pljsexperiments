@@ -6,8 +6,9 @@ use_module(library(charsio)).
 /* Added for SWI Prolog 7 compatibility */
 :- set_prolog_flag(double_quotes, codes).
 
-string_tok(tok(string, [QuotesChar|Chars], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
-	[CurrentPosition, PreTokenWhitespace],
+string_tok(tok(string, [QuotesChar|Chars], CurrentPosition, Line, PreTokenWhitespace)), 
+          [NewPosition, Line, []] -->
+	[CurrentPosition, Line, PreTokenWhitespace],
         ( ("\"", {[QuotesChar|_] = "\""}, !) ;
           ("\'", {[QuotesChar|_] = "'"}, !) ),
         string_literal_chars(Chars, QuotesChar),
@@ -28,8 +29,9 @@ string_literal_chars([Char|Chars], QuotesChar) -->
 string_literal_chars([QuotesChar], QuotesChar),[QuotesChar] --> [QuotesChar].
 
 
-number(tok(number, [Digit|Digits], CurrentPosition, PreTokenWhitespace)), [NewPosition, []] -->
-	[CurrentPosition, PreTokenWhitespace],
+number(tok(number, [Digit|Digits], CurrentPosition, Line, PreTokenWhitespace)), 
+       [NewPosition, Line, []] -->
+	[CurrentPosition, Line, PreTokenWhitespace],
 	digit(Digit),
 	digits(IntDigits),
         ((".", digits(Decimals), { append(".", Decimals, PointAndDecimals),
@@ -68,8 +70,9 @@ letters([]) --> [].
 
 
 /****/
-identifier(tok(id,[InitialCharacter|Letters], CurrentPosition, PreTokenWs )), [NewPosition, []] -->
-	[CurrentPosition, PreTokenWs],
+identifier(tok(id,[InitialCharacter|Letters], CurrentPosition, Line, PreTokenWs )), 
+           [NewPosition, Line, []] -->
+	[CurrentPosition, Line, PreTokenWs],
 	initialIdCharacter(InitialCharacter),
 	letters(Letters),
 	{  Word = [InitialCharacter|Letters],
@@ -86,14 +89,15 @@ letters([]) --> [].
 /***/
 
 
-line_comment(line_comment(Content, CurrentPosition)), [NewPosition, Lex] -->
-        [CurrentPosition, Lex],
+line_comment(line_comment(Content, CurrentPosition)), [NewPosition, NewLine, Lex] -->
+        [CurrentPosition, Line, Lex],
 	"//",
 	not_end_of_line_chars(Content),
 	end_of_line(EndOfLineSize),
 	{ length(Content, ContentSize),
 	  Size is 2 + ContentSize + EndOfLineSize,
-	  NewPosition is CurrentPosition + Size
+	  NewPosition is CurrentPosition + Size,
+          NewLine is Line + 1
 	}.
 
 end_of_line(2) --> "\r\n".
@@ -107,14 +111,15 @@ not_end_of_line_chars([Char|Chars]) -->
 
 not_end_of_line_chars([]) --> [].
 
-block_comment(block_comment(Content, CurrentPosition)), [NewPosition,Lex] -->
-    [CurrentPosition, Lex],
+block_comment(block_comment(Content, CurrentPosition)), [NewPosition, NewLine, Lex] -->
+    [CurrentPosition, Line, Lex],
     "/*",
     not_end_block_comment_chars(Content),
     "*/", {
           length(Content, ContentSize),
 	  Size is 4 + ContentSize ,
-	  NewPosition is CurrentPosition + Size
+	  NewPosition is CurrentPosition + Size,
+          NewLine is Line
     }.
 
 not_end_block_comment_chars([]),"*/" --> "*/", { ! }.
@@ -134,8 +139,9 @@ tok(Tok) -->
 	    )
 	}.
 
-tok(tok(punctuator, Value, CurrentPosition, PreTokenWs)), [NewPosition, []] -->
-	[CurrentPosition, PreTokenWs],
+tok(tok(punctuator, Value, CurrentPosition, Line, PreTokenWs)), 
+    [NewPosition, Line, []] -->
+	[CurrentPosition, Line, PreTokenWs],
 	js_punctuator(Value),
 	{
 	    NewPosition is CurrentPosition + 1
@@ -157,6 +163,8 @@ is_js_punctuator(";").
 is_js_punctuator("=").
 is_js_punctuator("(").
 is_js_punctuator(")").
+is_js_punctuator("[").
+is_js_punctuator("]").
 is_js_punctuator("{").
 is_js_punctuator("}").
 is_js_punctuator(":").
@@ -167,9 +175,9 @@ is_js_punctuator("-").
 is_js_punctuator("*").
 is_js_punctuator("/").
 
-js_keyword(tok(id, Text, Position, Lex), Token) :-
+js_keyword(tok(id, Text, Position, Line, Lex), Token) :-
 	is_jskeyword(Text),
-	Token = tok(keyword, Text, Position,Lex).
+	Token = tok(keyword, Text, Position, Line,Lex).
 
 is_jskeyword("var").
 is_jskeyword("function").
@@ -192,9 +200,9 @@ toks2([Tok|Rest]) -->
 	toks2(Rest).
 toks2([]) --> [].
 
-lexical_whitespace, [NewPosition, NewWhitespace] -->
+lexical_whitespace, [NewPosition, Line, NewWhitespace] -->
 	lex_whitespace_elements(NewWhitespace),
-	[NewPosition, _].
+	[NewPosition, Line, _].
 
 lex_whitespace_elements([WhiteSpaceElement|Rest]) -->
 	(whitespace(WhiteSpaceElement), !
@@ -204,12 +212,13 @@ lex_whitespace_elements([WhiteSpaceElement|Rest]) -->
 
 lex_whitespace_elements([]) --> [].
 
-whitespace(ws(CurrentPosition)), [NewPosition, Lex] -->
-	[CurrentPosition, Lex],
+whitespace(ws(CurrentPosition)), [NewPosition, NewLine, Lex] -->
+	[CurrentPosition,Line, Lex],
 	ws,
 	wss(Subcount),
         { Count is Subcount + 1,
-	  NewPosition is CurrentPosition + Count
+	  NewPosition is CurrentPosition + Count,
+          NewLine is Line
 	}.
 ws --> [X],{ code_type(X, space) }.
 wss(Count) -->
@@ -228,11 +237,11 @@ without_ws([X|Rest1],[X|Rest2]) :-
 without_ws([],[]).
 
 js_lex_string(Str, Toks) :-
-	phrase(toks2(Toks), [0|[[]|Str]], [_,_]).
+	phrase(toks2(Toks), [0|[1|[[]|Str]]], [_,_,_]).
 
 js_lex_string2(Str, Toks) :-
 	length(Str,Length),
-	phrase(toks2(Toks), [0|[[]|Str]], [Length,[]]).
+	phrase(toks2(Toks), [0|[1|[[]|Str]]], [Length,_,[]]).
 
 
 
