@@ -114,19 +114,21 @@ not_end_of_line_chars([]) --> [].
 block_comment(block_comment(Content, CurrentPosition)), [NewPosition, NewLine, Lex] -->
     [CurrentPosition, Line, Lex],
     "/*",
-    not_end_block_comment_chars(Content),
+    not_end_block_comment_chars(Content, Lines),
     "*/", {
           length(Content, ContentSize),
 	  Size is 4 + ContentSize ,
 	  NewPosition is CurrentPosition + Size,
-          NewLine is Line
+          NewLine is Line + Lines
     }.
 
-not_end_block_comment_chars([]),"*/" --> "*/", { ! }.
-not_end_block_comment_chars([Char|Chars]) -->
+not_end_block_comment_chars([], 0),"*/" --> "*/", { ! }.
+not_end_block_comment_chars([Char|Chars],Lines) -->
    [Char], 
-   not_end_block_comment_chars(Chars).
-not_end_block_comment_chars([]) --> [].
+   not_end_block_comment_chars(Chars, NextLines),
+   {  ( (code_type(Char,newline), CurrentLine = 1, !);
+         CurrentLine = 0 ) , Lines is NextLines + CurrentLine  }.
+not_end_block_comment_chars([],0) --> [].
 
 tok(Tok) -->
 	identifier(Word),
@@ -153,6 +155,14 @@ tok(Number) -->
 tok(String) -->
 	string_tok(String).
 
+js_punctuator(Value, 3) -->
+      [Value1, Value2, Value3], 
+      { 
+        Value = [Value1, Value2, Value3], 
+        three_char_punctuator(Value)
+      }.
+
+
 js_punctuator(Value, 2) -->
       [Value1, Value2], 
       { 
@@ -166,12 +176,21 @@ js_punctuator([Value], 1) -->
 	    is_js_punctuator([Value])
 	}.
 
+three_char_punctuator("===").
+three_char_punctuator("!==").
+three_char_punctuator(">>>").
+three_char_punctuator(">>=").
+three_char_punctuator("<<=").
+
 two_char_punctuator("+=").
 two_char_punctuator("-=").
 two_char_punctuator("/=").
 two_char_punctuator("*=").
 two_char_punctuator("<=").
 two_char_punctuator(">=").
+two_char_punctuator("||").
+two_char_punctuator("&&").
+
 
 
 is_js_punctuator(";").
@@ -189,6 +208,9 @@ is_js_punctuator("+").
 is_js_punctuator("-").
 is_js_punctuator("*").
 is_js_punctuator("/").
+is_js_punctuator(">").
+is_js_punctuator("<").
+is_js_punctuator("!").
 
 js_keyword(tok(id, Text, Position, Line, Lex), Token) :-
 	is_jskeyword(Text),
@@ -214,6 +236,7 @@ toks2([Tok|Rest]) -->
 	tok(Tok),
 	toks2(Rest).
 toks2([]),[X,Y,Z] --> [X,Y,Z], \+ [_].
+toks2([]) -->[X,Line,Z], [A,B,C], {  throw(unexpectedInput(line(Line), [A,B,C])) }.
 toks2([]) -->[X,Line,Z], { throw(unexpectedInput(line(Line))) }.
 
 lexical_whitespace, [NewPosition, Line, NewWhitespace] -->
@@ -230,8 +253,8 @@ lex_whitespace_elements([]) --> [].
 
 whitespace(ws(CurrentPosition)), [NewPosition, NewLine, Lex] -->
 	[CurrentPosition,Line, Lex],
-	ws(AddedLines),
-	wss(Subcount,NewLines),
+	ws(AddedLines), 
+        wss(Subcount,NewLines),
         { Count is Subcount + 1,
 	  NewPosition is CurrentPosition + Count,
           NewLine is Line + NewLines + AddedLines

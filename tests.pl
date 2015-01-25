@@ -148,6 +148,18 @@ test_lex_line_numbers1 :-
                    tok(punctuator, "]", _,4,_)
                     ]).
 
+test_lex_line_numbers2 :-
+   js_lex_string("[1, /*
+      comment
+   */ 
+   3]",
+		 [ tok(punctuator, "[", _,1,_),
+                   tok(number, "1", _,1,_),
+                   tok(punctuator, ",", _,1,_),
+                   tok(number, "3", _,4,_),
+                   tok(punctuator, "]", _,4,_)
+                    ]).
+
 
 
 run_test(Test) :-
@@ -178,6 +190,7 @@ run_tests :-
         run_test(test_lex_dotted_id),
         run_test(test_lex_floating_point_number_1),
         run_test(test_lex_line_numbers1),
+        run_test(test_lex_line_numbers2),
         run_test(test_lex_two_char_op).
 
 run_tests.
