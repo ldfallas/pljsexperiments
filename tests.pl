@@ -1,4 +1,5 @@
 :- use_module(parseexperiment).
+:- use_module(jsparser).
 
 test_lex_var_decl :-
    js_lex_string("var x;",
@@ -160,6 +161,9 @@ test_lex_line_numbers2 :-
                    tok(punctuator, "]", _,4,_)
                     ]).
 
+test_parse_basic_literal :-
+   parse_js_expression_string("'hola'", js_literal(string, "'hola'",_)).
+
 
 
 run_test(Test) :-
@@ -191,9 +195,11 @@ run_tests :-
         run_test(test_lex_floating_point_number_1),
         run_test(test_lex_line_numbers1),
         run_test(test_lex_line_numbers2),
-        run_test(test_lex_two_char_op).
+        run_test(test_lex_two_char_op),
 
-run_tests.
+        run_test(test_parse_basic_literal). 
+
+
 
 member([X|_],X).
 member([_|Rest],X) :- member(Rest,X).
