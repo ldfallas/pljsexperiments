@@ -163,6 +163,10 @@ test_lex_line_numbers2 :-
 
 test_parse_basic_literal :-
    parse_js_expression_string("'hola'", js_literal(string, "'hola'",_)).
+test_parse_basic_id :-
+   parse_js_expression_string("$foo", js_identifier("$foo",_)).
+test_parse_parenthesized:-
+   parse_js_expression_string("((a))", js_par(js_par(js_identifier("a",_),_),_)).
 
 
 
@@ -197,7 +201,10 @@ run_tests :-
         run_test(test_lex_line_numbers2),
         run_test(test_lex_two_char_op),
 
-        run_test(test_parse_basic_literal). 
+        run_test(test_parse_basic_literal),
+        run_test(test_parse_basic_literal ),
+        run_test(test_parse_basic_id ),
+        run_test(test_parse_parenthesized) . 
 
 
 
