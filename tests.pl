@@ -168,6 +168,12 @@ test_parse_basic_id :-
 test_parse_parenthesized:-
    parse_js_expression_string("((a))", js_par(js_par(js_identifier("a",_),_),_)).
 
+test_parse_newExpr1:-
+   parse_js_expression_string("new Foo()",js_new( js_identifier("Foo",_), js_arguments([],_) , _) ).
+
+test_parse_newExpr2:-
+   parse_js_expression_string("new Foo",js_new( js_identifier("Foo",_),  _) ).
+
 
 
 run_test(Test) :-
@@ -204,7 +210,10 @@ run_tests :-
         run_test(test_parse_basic_literal),
         run_test(test_parse_basic_literal ),
         run_test(test_parse_basic_id ),
-        run_test(test_parse_parenthesized) . 
+        run_test(test_parse_parenthesized),
+        run_test(test_parse_newExpr1),
+        run_test(test_parse_newExpr2)
+        . 
 
 
 
