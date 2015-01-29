@@ -37,7 +37,8 @@ js_par_expression(js_par(Expr, lex_info(Line, PreTokenWhitespace))) -->
 
 js_member_expression(Ast) -->
    js_primary_expression(Ast) 
-   ; js_new_object_expression_args(Ast).
+   ; js_new_object_expression_args(Ast)
+   ;  js_array_literal(Ast) .
 
 js_new_expression(Ast) -->
    js_member_expression(Ast)
@@ -64,3 +65,36 @@ js_argument_list([Ast|Rest]) -->
 js_argument_list([Ast]) -->
    js_expression(Ast).
 js_argument_list([]) --> [].
+
+js_array_literal(js_array_literal(Exprs, lex_info(Line, PreTokenWhitespace))) -->
+   [tok(punctuator, "[", _, Line, PreTokenWhitespace)],
+   (([], {Exprs = []})
+    ; (js_elision(Exprs))
+    ; (js_element_list(Exprs))), 
+   [tok(punctuator, "]", _, Line2, PreTokenWhitespace2)].
+
+js_elision([js_implicit_undefined|Rest]) -->
+   [tok(punctuator, ",", _, _, _)],
+   js_elision(Rest).
+js_elision([js_implicit_undefined]) -->
+   [tok(punctuator, ",", _, _, _)].
+
+js_element_list([Elision|[Expr| Rest]]) --> 
+   js_elision(Elision),
+   js_assignment_expression(Expr),
+   ((
+      [tok(punctuator, ",", _, _, _)],
+      js_element_list(Rest))
+      ;([] , { Rest = []})).
+js_element_list([Expr| Rest]) --> 
+   js_assignment_expression(Expr),
+   ((
+      [tok(punctuator, ",", _, _, _)],
+      js_element_list(Rest))
+      ;([] , { Rest = []})).
+
+js_element_list([Expr]) --> 
+   js_assignment_expression(Expr).
+
+
+js_assignment_expression(Expr) --> js_expression(Expr).

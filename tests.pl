@@ -174,6 +174,25 @@ test_parse_newExpr1:-
 test_parse_newExpr2:-
    parse_js_expression_string("new Foo",js_new( js_identifier("Foo",_),  _) ).
 
+test_parse_array_literal1 :-
+   parse_js_expression_string("[]",js_array_literal( [ ],  _) ).
+test_parse_array_literal2 :-
+   parse_js_expression_string("[1]",js_array_literal( [ js_literal(number, "1",_) ],  _) ).
+test_parse_array_literal3 :-
+   parse_js_expression_string("[a,]",js_array_literal( [ js_identifier( "a",_) ],  _) ).
+test_parse_array_literal4 :-
+   parse_js_expression_string("[a,b,c]",
+         js_array_literal( [ js_identifier( "a",_),
+                             js_identifier("b",_),
+                             js_identifier("c",_) ],  _) ).
+test_parse_array_literal5 :-
+   parse_js_expression_string("[,]",
+                     js_array_literal( [ js_implicit_undefined ],  _) ).
+test_parse_array_literal6 :-
+   parse_js_expression_string("[a,,b]",
+                     js_array_literal( [ js_identifier( "a",_),
+                                         js_implicit_undefined, 
+                                         js_identifier( "b",_) ],  _) ).
 
 
 run_test(Test) :-
@@ -212,7 +231,14 @@ run_tests :-
         run_test(test_parse_basic_id ),
         run_test(test_parse_parenthesized),
         run_test(test_parse_newExpr1),
-        run_test(test_parse_newExpr2)
+
+        run_test(test_parse_newExpr2),
+        run_test(test_parse_array_literal1),
+        run_test(test_parse_array_literal2),
+        run_test(test_parse_array_literal3),
+        run_test(test_parse_array_literal4),
+        run_test(test_parse_array_literal5),
+        run_test(test_parse_array_literal6)
         . 
 
 
