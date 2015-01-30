@@ -1,6 +1,6 @@
 :- module(jsparser, [parse_js_expression_string/2 ]).
 
-:- use_module(parseexperiment).
+:- use_module(jslexer).
 
 parse_js_expression_string(CodeString, Ast) :- 
    js_lex_string(CodeString, Toks), 

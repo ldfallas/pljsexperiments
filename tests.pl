@@ -1,4 +1,4 @@
-:- use_module(parseexperiment).
+:- use_module(jslexer).
 :- use_module(jsparser).
 
 test_lex_var_decl :-
