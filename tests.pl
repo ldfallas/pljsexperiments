@@ -194,6 +194,13 @@ test_parse_array_literal6 :-
                                          js_implicit_undefined, 
                                          js_identifier( "b",_) ],  _) ).
 
+test_parse_array_literal7 :-
+   parse_js_expression_string("[a,[c,d],b]",
+                     js_array_literal( [ js_identifier( "a",_),
+                                         js_array_literal( 
+                                              [ js_identifier( "c",_),
+                                                js_identifier( "d",_) ],  _),
+                                         js_identifier( "b",_) ],  _) ).
 
 run_test(Test) :-
         functor(Test, Name, _),
@@ -238,7 +245,8 @@ run_tests :-
         run_test(test_parse_array_literal3),
         run_test(test_parse_array_literal4),
         run_test(test_parse_array_literal5),
-        run_test(test_parse_array_literal6)
+        run_test(test_parse_array_literal6),
+        run_test(test_parse_array_literal7)
         . 
 
 

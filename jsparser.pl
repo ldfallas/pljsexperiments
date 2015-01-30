@@ -23,6 +23,12 @@ js_literal_expression(
               lex_info(Line, PreTokenWhitespace))) -->
    [tok(string, StringValue, _, Line, PreTokenWhitespace)] .
 
+js_literal_expression(
+   js_literal(number, 
+              NumericStringValue,
+              lex_info(Line, PreTokenWhitespace))) -->
+   [tok(number, NumericStringValue, _, Line, PreTokenWhitespace)] .
+
 
 js_identifier_expression(
    js_identifier(IdName,
@@ -79,13 +85,14 @@ js_elision([js_implicit_undefined|Rest]) -->
 js_elision([js_implicit_undefined]) -->
    [tok(punctuator, ",", _, _, _)].
 
-js_element_list([Elision|[Expr| Rest]]) --> 
+js_element_list(List) --> 
    js_elision(Elision),
    js_assignment_expression(Expr),
    ((
       [tok(punctuator, ",", _, _, _)],
       js_element_list(Rest))
-      ;([] , { Rest = []})).
+      ;([] , { Rest = []})),
+      { append(Elision, [Expr| Rest], List) }.
 js_element_list([Expr| Rest]) --> 
    js_assignment_expression(Expr),
    ((
@@ -94,7 +101,9 @@ js_element_list([Expr| Rest]) -->
       ;([] , { Rest = []})).
 
 js_element_list([Expr]) --> 
-   js_assignment_expression(Expr).
+   js_assignment_expression(Expr),
+   ( [tok(punctuator, ",", _, _, _)]
+     ; []).
 
 
 js_assignment_expression(Expr) --> js_expression(Expr).
