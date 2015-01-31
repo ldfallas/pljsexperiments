@@ -44,7 +44,8 @@ js_par_expression(js_par(Expr, lex_info(Line, PreTokenWhitespace))) -->
 js_member_expression(Ast) -->
    js_primary_expression(Ast) 
    ; js_new_object_expression_args(Ast)
-   ;  js_array_literal(Ast) .
+   ;  js_array_literal(Ast)
+   ;  js_object_literal(Ast) .
 
 js_new_expression(Ast) -->
    js_member_expression(Ast)
@@ -93,6 +94,7 @@ js_element_list(List) -->
       js_element_list(Rest))
       ;([] , { Rest = []})),
       { append(Elision, [Expr| Rest], List) }.
+
 js_element_list([Expr| Rest]) --> 
    js_assignment_expression(Expr),
    ((
@@ -105,5 +107,27 @@ js_element_list([Expr]) -->
    ( [tok(punctuator, ",", _, _, _)]
      ; []).
 
-
 js_assignment_expression(Expr) --> js_expression(Expr).
+
+js_object_literal(js_object(ObjectProperties, lex_info(Line, PreTokenWhitespace))) -->
+   [tok(punctuator, "{", _, Line, PreTokenWhitespace)],
+   js_property_and_name_list(ObjectProperties),
+   [tok(punctuator, "}", _, Line2, PreTokenWhitespace2 )].
+
+js_property_and_name_list([]) --> [].
+js_property_and_name_list(Elements) --> js_property_and_name_list_seq(Elements).
+
+js_property_and_name_list_seq([Prop|Rest]) -->
+   js_property_assignment(Prop),
+   [tok(punctuator, ",", _, _, _)],
+   js_property_and_name_list_continuation(Rest).
+
+js_property_and_name_list_seq([Prop]) --> js_property_assignment(Prop).
+
+js_property_assignment(js_property_assignment(Name, Expression)) -->
+    js_property_name(Name),
+    [tok(punctuator, ":", _, _, _)],
+    js_assignment_expression(Expression) .
+
+js_property_name(Name) -->
+   [tok(id, Name, _, Line, PreTokenWhitespace)] .

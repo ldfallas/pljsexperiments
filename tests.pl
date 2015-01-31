@@ -202,6 +202,17 @@ test_parse_array_literal7 :-
                                                 js_identifier( "d",_) ],  _),
                                          js_identifier( "b",_) ],  _) ).
 
+test_parse_object_literal1 :-
+   parse_js_expression_string("{}",js_object( [ ],  _) ).
+
+test_parse_object_literal2 :-
+   parse_js_expression_string(
+       "{ a : 1}",
+       js_object( [ 
+          js_property_assignment("a", js_literal(number, "1",_))
+       ],  _) ).
+
+
 run_test(Test) :-
         functor(Test, Name, _),
         (call(Test) -> writef(" PASS") ;
@@ -246,7 +257,9 @@ run_tests :-
         run_test(test_parse_array_literal4),
         run_test(test_parse_array_literal5),
         run_test(test_parse_array_literal6),
-        run_test(test_parse_array_literal7)
+        run_test(test_parse_array_literal7),
+        run_test(test_parse_object_literal1),
+        run_test(test_parse_object_literal2)
         . 
 
 
