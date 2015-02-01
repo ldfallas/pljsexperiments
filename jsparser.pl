@@ -131,3 +131,6 @@ js_property_assignment(js_property_assignment(Name, Expression)) -->
 
 js_property_name(Name) -->
    [tok(id, Name, _, Line, PreTokenWhitespace)] .
+
+js_property_name(Name) -->
+   [tok(string, Name, _, Line, PreTokenWhitespace)] .

@@ -1,7 +1,7 @@
 # JsParser
 
 
-An experimental JavaScript parser implemented using Prolog DCGs.  
+An experimental JavaScript parser implemented using Prolog DCGs (still pretty incomplete) .  
 
 The goal of this project is to implement a reasonably complete JavaScript parser according to the Ecma-262 specification.
 

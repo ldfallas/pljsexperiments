@@ -212,6 +212,13 @@ test_parse_object_literal2 :-
           js_property_assignment("a", js_literal(number, "1",_))
        ],  _) ).
 
+test_parse_object_literal3 :-
+   parse_js_expression_string(
+       "{ 'b' : 1}",
+       js_object( [ 
+          js_property_assignment("'b'", js_literal(number, "1",_))
+       ],  _) ).
+
 
 run_test(Test) :-
         functor(Test, Name, _),
@@ -259,7 +266,8 @@ run_tests :-
         run_test(test_parse_array_literal6),
         run_test(test_parse_array_literal7),
         run_test(test_parse_object_literal1),
-        run_test(test_parse_object_literal2)
+        run_test(test_parse_object_literal2),
+        run_test(test_parse_object_literal3)
         . 
 
 
