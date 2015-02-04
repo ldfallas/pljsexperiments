@@ -220,6 +220,23 @@ test_parse_object_literal3 :-
        ],  _) ).
 
 
+test_parse_array_access1 :-
+   parse_js_expression_string(
+       "a[1]",
+        js_array_access( 
+            js_identifier("a",_),
+            js_literal(number, "1",_),  _) ).
+test_parse_array_access2 :-
+   parse_js_expression_string(
+       "a[1][2]",
+        js_array_access( 
+           js_array_access( 
+              js_identifier("a",_),
+              js_literal(number, "1",_),  _),
+           js_literal(number, "2",_),
+           _ )).
+
+
 run_test(Test) :-
         functor(Test, Name, _),
         (call(Test) -> writef(" PASS") ;
@@ -267,7 +284,10 @@ run_tests :-
         run_test(test_parse_array_literal7),
         run_test(test_parse_object_literal1),
         run_test(test_parse_object_literal2),
-        run_test(test_parse_object_literal3)
+        run_test(test_parse_object_literal3),
+
+        run_test(test_parse_array_access1),
+        run_test(test_parse_array_access2)
         . 
 
 
