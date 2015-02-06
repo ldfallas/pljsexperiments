@@ -45,9 +45,36 @@ js_par_expression(js_par(Expr, lex_info(Line, PreTokenWhitespace))) -->
 
 js_member_expression(Ast) -->
    js_primary_expression(Ast) 
+   ; js_function_expression(Ast)
    ; js_array_access_expression(Ast) 
+   /*; js_dotted_access_expression(Ast) */
    ; js_new_object_expression_args(Ast)
     .
+
+
+js_function_expression(js_function_expression(Params, Body, lex_info(Line, PreTokenWhitespace))) -->
+   [tok(keyword, "function", _, Line, PreTokenWhitespace)],
+   [tok(punctuator, "(", _, Line1, PreTokenWhitespace1)],
+   js_formal_parameter_list(Params),
+   [tok(punctuator, ")", _, Line2, PreTokenWhitespace2)],
+   js_statement_block(Body).
+
+js_formal_parameter_list([Param | Rest]) --> 
+   js_identifier_expression(Param),
+   [tok(punctuator, ",", _, _, _)],
+   js_formal_parameter_list(Rest).
+   
+js_formal_parameter_list([Param]) --> 
+   js_identifier_expression(Param).
+
+js_statement_block([]) -->
+  [tok(punctuator, "{", _, Line, PreTokenWhitespace)],
+  [tok(punctuator, "}", _, Line2, PreTokenWhitespace2)].
+
+js_dotted_access_expression(js_dotted_access(Expr, Identifier,lex_info(Line,PreTokenWhitespace))) -->
+  js_member_expression(Expr),
+  [tok(punctuator, ".", _, Line, PreTokenWhitespace)],
+  js_identifier_expression(Identifier).
 
 js_array_access_expression(js_array_access(MemberExpr, IndexExpr, lex_info(Line,PreTokenWhitespace))) -->
   js_member_expression(MemberExpr),
