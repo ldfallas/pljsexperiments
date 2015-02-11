@@ -44,10 +44,20 @@ js_par_expression(js_par(Expr, lex_info(Line, PreTokenWhitespace))) -->
    [tok(punctuator, ")", _, Line, PreTokenWhitespace)].
 
 js_member_expression(Ast) -->
+    js_simple_member_expression(LeftExprAst),
+    js_member_access_expression(LeftExprAst,Ast). 
+
+js_member_access_expression(LeftExprAst, Ast) -->
+   (js_array_access_expression(LeftExprAst, Ast), !) ;
+    (js_dotted_access_expression(LeftExprAst, Ast), !) ;
+    {Ast = LeftExprAst}.
+   
+
+js_simple_member_expression(Ast) -->
    js_primary_expression(Ast) 
    ; js_function_expression(Ast)
-   ; js_array_access_expression(Ast) 
-   ; js_dotted_access_expression(Ast) 
+  /* ; js_array_access_expression(Ast) 
+   ; js_dotted_access_expression(Ast) */
    ; js_new_object_expression_args(Ast)
     .
 
@@ -71,16 +81,21 @@ js_statement_block([]) -->
   [tok(punctuator, "{", _, Line, PreTokenWhitespace)],
   [tok(punctuator, "}", _, Line2, PreTokenWhitespace2)].
 
-js_dotted_access_expression(js_dotted_access(Expr, Identifier,lex_info(Line,PreTokenWhitespace))) -->
-  js_member_expression(Expr),
+js_dotted_access_expression(Expr,  FinalResult) -->
+  /*js_member_expression(Expr),*/
   [tok(punctuator, ".", _, Line, PreTokenWhitespace)],
-  js_identifier_expression(Identifier).
+  js_identifier_expression(Identifier),
+  {
+     Result = js_dotted_access(Expr, Identifier,lex_info(Line,PreTokenWhitespace))
+  },js_member_access_expression(Result, FinalResult) .
 
-js_array_access_expression(js_array_access(MemberExpr, IndexExpr, lex_info(Line,PreTokenWhitespace))) -->
-  js_member_expression(MemberExpr),
+js_array_access_expression(MemberExpr, FinalResult /*js_array_access(MemberExpr, IndexExpr, lex_info(Line,PreTokenWhitespace))*/) -->
+  /*js_member_expression(MemberExpr),*/
   [tok(punctuator, "[", _, Line, PreTokenWhitespace)],
   js_expression(IndexExpr),
-  [tok(punctuator, "]", _, Line2, PreTokenWhitespace2)].
+  [tok(punctuator, "]", _, Line2, PreTokenWhitespace2)],
+  { Result = js_array_access(MemberExpr, IndexExpr, lex_info(Line,PreTokenWhitespace)) },
+  (   js_member_access_expression(Result, FinalResult); { FinalResult = Result } ).
 
 js_new_expression(Ast) -->
    js_member_expression(Ast)
