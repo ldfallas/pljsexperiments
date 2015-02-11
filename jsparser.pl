@@ -47,7 +47,7 @@ js_member_expression(Ast) -->
    js_primary_expression(Ast) 
    ; js_function_expression(Ast)
    ; js_array_access_expression(Ast) 
-   /*; js_dotted_access_expression(Ast) */
+   ; js_dotted_access_expression(Ast) 
    ; js_new_object_expression_args(Ast)
     .
 
