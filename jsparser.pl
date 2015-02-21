@@ -9,7 +9,8 @@ parse_js_expression_string(CodeString, Ast) :-
 
 js_expression(Ast) -->
     /* js_primary_expression(Ast). */
-    js_new_expression(Ast).
+    /*js_new_expression(Ast).*/
+    js_left_hand_side_expression(Ast).
    
 
 js_primary_expression(Ast) -->
@@ -123,6 +124,11 @@ js_argument_list([Ast]) -->
    js_expression(Ast).
 js_argument_list([]) --> [].
 
+js_call_expression(js_call_expression(Function, Arguments, null)) -->
+   js_member_expression(Function),
+   js_arguments(Arguments)
+   .
+
 js_array_literal(js_array_literal(Exprs, lex_info(Line, PreTokenWhitespace))) -->
    [tok(punctuator, "[", _, Line, PreTokenWhitespace)],
    (([], {Exprs = []})
@@ -184,3 +190,6 @@ js_property_name(Name) -->
 
 js_property_name(Name) -->
    [tok(string, Name, _, Line, PreTokenWhitespace)] .
+
+js_left_hand_side_expression(Expr) --> js_call_expression(Expr).
+js_left_hand_side_expression(Expr) --> js_member_expression(Expr).

@@ -298,6 +298,60 @@ test_parse_function_expression1 :-
             [],
             [],  _)).
 
+test_parse_call_expression1 :-
+   parse_js_expression_string(
+       "foo()",
+        js_call_expression( 
+            js_identifier("foo", _),
+            js_arguments([],_),  _)).
+
+test_parse_call_expression2 :-
+   parse_js_expression_string(
+       "foo().x",
+       js_dotted_access(
+        js_call_expression( 
+            js_identifier("foo", _),
+            js_arguments([], _),  _),
+         js_identifier("x",_), _)).
+
+test_parse_call_expression3 :-
+   parse_js_expression_string(
+       "foo()[x]",
+       js_array_access(
+        js_call_expression( 
+            js_identifier("foo", _),
+            js_arguments([],_),  _),
+         js_identifier("x",_), _)).
+
+
+test_parse_call_expression_with_args1 :-
+   parse_js_expression_string(
+       "foo(x)",
+        js_call_expression( 
+            js_identifier("foo", _),
+            js_arguments([js_identifier("x", _)], _),  _)).
+
+test_parse_call_expression_with_args2 :-
+   parse_js_expression_string(
+       "foo(x, y)",
+        js_call_expression( 
+            js_identifier("foo", _),
+            js_arguments(
+            [ js_identifier("x", _),
+              js_identifier("y", _)
+              ],_),  _)).
+
+test_parse_call_expression_with_args3 :-
+   parse_js_expression_string(
+       "foo(x, goo())",
+        js_call_expression( 
+            js_identifier("foo", _),
+            js_arguments(
+              [js_identifier("x", _),
+               js_call_expression( 
+                  js_identifier("goo", _),
+                  js_arguments([],_),  _)
+              ],_),  _)).
 
 
 run_test(Test) :-
@@ -358,7 +412,15 @@ run_tests :-
 
         run_test(test_parse_dotted_access1),
         run_test(test_parse_dotted_access2),
-        run_test(test_parse_dotted_access3)/*,
+        run_test(test_parse_dotted_access3),
+        
+        run_test(test_parse_call_expression1),
+        run_test(test_parse_call_expression2),
+        run_test(test_parse_call_expression3),
+        run_test(test_parse_call_expression_with_args1),
+        run_test(test_parse_call_expression_with_args2),
+        run_test(test_parse_call_expression_with_args3)
+        /*,
 
         run_test(test_parse_function_expression1)*/
         . 
