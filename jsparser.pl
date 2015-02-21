@@ -7,9 +7,19 @@ parse_js_expression_string(CodeString, Ast) :-
    !, /* just one  chance to tokenize the string */
    phrase(js_expression(Ast), Toks).
 
+trace_parse_js_expression_string(CodeString, Ast) :- 
+   notrace,
+   js_lex_string(CodeString, Toks), 
+   !, /* just one  chance to tokenize the string */
+   trace, 
+   phrase(js_expression(Ast), Toks),
+   notrace.
+
+
 js_expression(Ast) -->
     /* js_primary_expression(Ast). */
-    js_new_expression(Ast).
+    /*js_new_expression(Ast).*/
+    js_left_hand_side_expression(Ast).
    
 
 js_primary_expression(Ast) -->
@@ -123,6 +133,12 @@ js_argument_list([Ast]) -->
    js_expression(Ast).
 js_argument_list([]) --> [].
 
+js_call_expression(FinalResult) -->
+   js_member_expression(Function),
+   js_arguments(Arguments),
+   { Result = js_call_expression(Function, Arguments, null) },
+   js_member_access_expression(Result, FinalResult).
+
 js_array_literal(js_array_literal(Exprs, lex_info(Line, PreTokenWhitespace))) -->
    [tok(punctuator, "[", _, Line, PreTokenWhitespace)],
    (([], {Exprs = []})
@@ -184,3 +200,6 @@ js_property_name(Name) -->
 
 js_property_name(Name) -->
    [tok(string, Name, _, Line, PreTokenWhitespace)] .
+
+js_left_hand_side_expression(Expr) --> js_call_expression(Expr).
+js_left_hand_side_expression(Expr) --> js_new_expression(Expr).
