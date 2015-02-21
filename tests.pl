@@ -289,6 +289,23 @@ test_parse_dotted_access3 :-
                js_identifier("b",_),  _),
            js_identifier("c",_),_)).
 
+test_parse_dotted_access4 :-
+   parse_js_expression_string(
+      "a[b].c.e[x].y.j",
+      js_dotted_access(
+         js_dotted_access(
+            js_array_access( 
+               js_dotted_access(
+                  js_dotted_access( 
+                     js_array_access( 
+                        js_identifier("a",_),
+                        js_identifier("b",_),  _),
+                     js_identifier("c",_),_),
+                  js_identifier("e",_),_),
+               js_identifier("x",_),_),
+            js_identifier("y",_),_),
+         js_identifier("j",_),_)).
+
 
 
 test_parse_function_expression1 :-
@@ -358,7 +375,9 @@ run_tests :-
 
         run_test(test_parse_dotted_access1),
         run_test(test_parse_dotted_access2),
-        run_test(test_parse_dotted_access3)/*,
+        run_test(test_parse_dotted_access3),
+        run_test(test_parse_dotted_access4 )
+/*,
 
         run_test(test_parse_function_expression1)*/
         . 
