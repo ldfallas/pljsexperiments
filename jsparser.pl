@@ -18,8 +18,11 @@ trace_parse_js_expression_string(CodeString, Ast) :-
 
 js_expression(Ast) -->
     /* js_primary_expression(Ast). */
-    /*js_new_expression(Ast).*/
+    /*js_new_expression(Ast).
     js_left_hand_side_expression(Ast).
+ */
+    js_postfix_expression(Ast).
+    
    
 
 js_primary_expression(Ast) -->
@@ -203,3 +206,17 @@ js_property_name(Name) -->
 
 js_left_hand_side_expression(Expr) --> js_call_expression(Expr).
 js_left_hand_side_expression(Expr) --> js_new_expression(Expr).
+
+
+js_postfix_expression(FinalExpr) -->
+   js_left_hand_side_expression(Expr),
+   js_postfix_increment_expression(Expr, FinalExpr).
+
+js_postfix_increment_expression(Expr, FinalExpr) -->
+  (
+   [tok(punctuator, "++", _, _, Whitespace_elements)],
+   { (\+ member(ws(_, true), Whitespace_elements), !),
+     FinalExpr = js_postfix_expression(Expr, lex_info(1))  }) ;
+   { FinalExpr = Expr }.
+
+

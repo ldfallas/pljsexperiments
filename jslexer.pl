@@ -190,6 +190,7 @@ two_char_punctuator("<=").
 two_char_punctuator(">=").
 two_char_punctuator("||").
 two_char_punctuator("&&").
+two_char_punctuator("++").
 
 
 
@@ -252,13 +253,16 @@ lex_whitespace_elements([WhiteSpaceElement|Rest]) -->
 
 lex_whitespace_elements([]) --> [].
 
-whitespace(ws(CurrentPosition)), [NewPosition, NewLine, Lex] -->
+whitespace(ws(CurrentPosition, WithNewLine)), [NewPosition, NewLine, Lex] -->
 	[CurrentPosition,Line, Lex],
 	ws(AddedLines), 
         wss(Subcount,NewLines),
         { Count is Subcount + 1,
 	  NewPosition is CurrentPosition + Count,
-          NewLine is Line + NewLines + AddedLines
+          NewLine is Line + NewLines + AddedLines,
+          writef(AddedLines),
+          ((AddedLines + NewLines > 0, WithNewLine = true,!) ;
+             WithNewLine = false) 
 	}.
 ws(1) --> [X],{ code_type(X, newline), ! }.
 ws(0) --> [X],{ code_type(X, space) }.
@@ -271,10 +275,10 @@ wss(Count, Lines) -->
 	}.
 wss(0, 0) --> [].
 
-without_ws([ws(_)|Rest],Other) :-
+without_ws([ws(_,_)|Rest],Other) :-
 	without_ws(Rest,Other).
 without_ws([X|Rest1],[X|Rest2]) :-
-	\+ (X = ws(_)),
+	\+ (X = ws(_,_)),
 	without_ws(Rest1,Rest2).
 without_ws([],[]).
 

@@ -26,9 +26,15 @@ test_lex_id4 :-
 test_lex_id5 :-
    js_lex_string("an_id_for",
 		 [ tok(id, "an_id_for", _,_,_)]).
+
 test_lex_two_char_op :-
    js_lex_string("+=",
 		 [ tok(punctuator, "+=", _,_,_)]).
+
+test_lex_two_char_op2 :-
+   js_lex_string("++",
+		 [ tok(punctuator, "++", _,_,_)]).
+
 
 test_lex_floating_point_number_1 :-
    js_lex_string("34.45",
@@ -370,6 +376,14 @@ test_parse_call_expression_with_args3 :-
                   js_arguments([],_),  _)
               ],_),  _)).
 
+test_parse_postfix_expression1 :-
+   parse_js_expression_string(
+       "x++",
+        js_postfix_expression( 
+            js_identifier("x", _)
+            ,  _)).
+
+
 
 run_test(Test) :-
         functor(Test, Name, _),
@@ -401,6 +415,7 @@ run_tests :-
         run_test(test_lex_line_numbers1),
         run_test(test_lex_line_numbers2),
         run_test(test_lex_two_char_op),
+        run_test(test_lex_two_char_op2),
 
         run_test(test_parse_basic_literal),
         run_test(test_parse_basic_literal ),
@@ -437,7 +452,9 @@ run_tests :-
         run_test(test_parse_call_expression3),
         run_test(test_parse_call_expression_with_args1),
         run_test(test_parse_call_expression_with_args2),
-        run_test(test_parse_call_expression_with_args3)
+        run_test(test_parse_call_expression_with_args3),
+
+        run_test(test_parse_postfix_expression1).
         /*,
 
         run_test(test_parse_function_expression1)*/
@@ -445,5 +462,5 @@ run_tests :-
 
 
 
-member([X|_],X).
-member([_|Rest],X) :- member(Rest,X).
+/*member([X|_],X).
+member([_|Rest],X) :- member(Rest,X).*/
