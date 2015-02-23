@@ -458,7 +458,6 @@ run_tests :-
         /*,
 
         run_test(test_parse_function_expression1)*/
-        . 
 
 
 

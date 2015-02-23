@@ -89,8 +89,7 @@ letters([]) --> [].
 /***/
 
 
-line_comment(line_comment(Content, CurrentPosition)), [NewPosition, NewLine, Lex] -->
-        [CurrentPosition, Line, Lex],
+line_comment(CurrentPosition,Line, Lex, line_comment(Content, CurrentPosition)), [NewPosition, NewLine, Lex] -->
 	"//",
 	not_end_of_line_chars(Content),
 	end_of_line(EndOfLineSize),
@@ -106,13 +105,12 @@ end_of_line(0) --> [].
 
 not_end_of_line_chars([Char|Chars]) -->
 	[Char],
-	not_end_of_line_chars(Chars),
-	{ \+ code_type(Char,end_of_line) }.
+	{ \+ code_type(Char,end_of_line) },
+	not_end_of_line_chars(Chars).
 
 not_end_of_line_chars([]) --> [].
 
-block_comment(block_comment(Content, CurrentPosition)), [NewPosition, NewLine, Lex] -->
-    [CurrentPosition, Line, Lex],
+block_comment(CurrentPosition,Line, Lex, block_comment(Content, CurrentPosition)), [NewPosition, NewLine, Lex] -->
     "/*",
     not_end_block_comment_chars(Content, Lines),
     "*/", {
@@ -212,6 +210,10 @@ is_js_punctuator("/").
 is_js_punctuator(">").
 is_js_punctuator("<").
 is_js_punctuator("!").
+is_js_punctuator("?").
+is_js_punctuator("&").
+is_js_punctuator("|").
+is_js_punctuator("^").
 
 js_keyword(tok(id, Text, Position, Line, Lex), Token) :-
 	is_jskeyword(Text),
@@ -246,15 +248,21 @@ lexical_whitespace, [NewPosition, Line, NewWhitespace] -->
 	[NewPosition, Line, _].
 
 lex_whitespace_elements([WhiteSpaceElement|Rest]) -->
-	(whitespace(WhiteSpaceElement), !
-	 ; line_comment(WhiteSpaceElement), !
-         ; block_comment(WhiteSpaceElement)),
+	[CurrentPosition,Line, Lex],
+        peek_whitespace_start,
+	(whitespace(CurrentPosition,Line, Lex, WhiteSpaceElement), !
+	 ; line_comment(CurrentPosition,Line, Lex, WhiteSpaceElement), !
+         ; block_comment(CurrentPosition,Line, Lex, WhiteSpaceElement)),
 	lex_whitespace_elements(Rest).
 
 lex_whitespace_elements([]) --> [].
 
-whitespace(ws(CurrentPosition, WithNewLine)), [NewPosition, NewLine, Lex] -->
-	[CurrentPosition,Line, Lex],
+peek_whitespace_start , [Char] -->
+   [Char],
+   {code_type(Char,space); Char = 47 /* 47 == '/' */ }.
+   
+
+whitespace(CurrentPosition,Line, Lex, ws(CurrentPosition, WithNewLine)), [NewPosition, NewLine, Lex] -->
 	ws(AddedLines), 
         wss(Subcount,NewLines),
         { Count is Subcount + 1,
