@@ -239,7 +239,7 @@ toks2([Tok|Rest]) -->
 	lexical_whitespace,
 	tok(Tok),
 	toks2(Rest).
-toks2([]),[X,Y,Z] --> [X,Y,Z], \+ [_].
+toks2([]),[X,Y,Z] --> lexical_whitespace,[X,Y,Z], \+ [_].
 toks2([]) -->[X,Line,Z], [A,B,C], {  throw(unexpectedInput(line(Line), [A,B,C])) }.
 toks2([]) -->[X,Line,Z], { throw(unexpectedInput(line(Line))) }.
 
