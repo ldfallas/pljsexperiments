@@ -1,4 +1,4 @@
-:- module(parserexperiment, [js_lex_string/2]).
+:- module(parserexperiment, [js_lex_string/2, js_regex/3]).
 
 use_module(library(pure_io)).
 use_module(library(charsio)).
@@ -9,7 +9,7 @@ use_module(library(charsio)).
 string_tok(tok(string, [QuotesChar|Chars], CurrentPosition, Line, PreTokenWhitespace)), 
           [NewPosition, Line, []] -->
 	[CurrentPosition, Line, PreTokenWhitespace],
-        ( ("\"", {[QuotesChar|_] = "\""}, !) ;
+         (("\"", {[QuotesChar|_] = "\""}, !) ;
           ("\'", {[QuotesChar|_] = "'"}, !) ),
         string_literal_chars(Chars, QuotesChar),
         [QuotesChar],
@@ -128,7 +128,7 @@ not_end_block_comment_chars([Char|Chars],Lines) -->
          CurrentLine = 0 ) , Lines is NextLines + CurrentLine  }.
 not_end_block_comment_chars([],0) --> [].
 
-tok(Tok) -->
+tok(Tok, _) -->
 	identifier(Word),
 	{
 	    js_keyword(Word, Tok),! ;
@@ -139,18 +139,96 @@ tok(Tok) -->
 	    )
 	}.
 
-tok(tok(punctuator, Value, CurrentPosition, Line, PreTokenWs)), 
+/*tok(tok(punctuator, Value, CurrentPosition, Line, PreTokenWs), PreviousToken), */
+tok(ResultTok, PreviousToken), 
     [NewPosition, Line, []] -->
 	[CurrentPosition, Line, PreTokenWs],
-	js_punctuator(Value, Length),
-	{
-	    NewPosition is CurrentPosition + Length
-	}.
+        ((peek_slash_char,  
+           {  regexPossible(PreviousToken) }, 
+           js_regex(Result), {
+	       (NewPosition is CurrentPosition + 1),
+               ResultTok = tok(regex, Result, CurrentPosition, Line, PreTokenWs)
+           }, !) ;
 
-tok(Number) -->
+	(js_punctuator(Value, Length),
+	{
+	    (NewPosition is CurrentPosition + Length),
+            ResultTok = tok(punctuator, Value, CurrentPosition, Line, PreTokenWs)
+	})).
+
+regexPossible(null).
+
+peek_slash_char, [Char] -->
+   [Char],
+   { Char = 47 /* 47 == '/' */ }.
+
+js_regex(regex_literal(Body, Options)) -->
+   "/",
+   js_regular_expression_body(Body),
+   "/",
+   js_regular_expression_flags(Options).
+
+js_regular_expression_flags([Char|Rest]) -->
+   [Char],
+   { code_type(Char, alpha) },
+   js_regular_expression_flags(Rest).
+
+js_regular_expression_flags([]) --> [].
+
+js_regular_expression_body(Chrs) -->
+   js_regular_expression_first_valid_char(First),! ,
+   js_regular_expression_class_chars(Rest),!,
+   { append( First, Rest, Chrs) }.
+
+
+js_regular_expression_first_char(First) --> 
+  js_regular_expression_first_char(First)
+  ; js_regular_expression_backslash_sequence(First).
+
+js_regular_expression_char(First) --> 
+  js_regular_expression_common_char(First)
+  ; js_regular_expression_backslash_sequence(First).
+
+
+js_regular_expression_backslash_sequence(BackslashSequence) -->
+   "\\",
+   js_regular_expression_non_terminator(Chr),
+   { append("\\", Chr, BackslashSequence)  }.
+
+js_regular_expression_class_char -->
+   "[",
+    js_regular_expression_class_chars(Chars),
+   "]",
+   { append("[",Chars, C1)  }.
+
+js_regular_expression_class_char(Char) -->
+   js_regular_expression_common_char(Char).
+
+js_regular_expression_class_char(BackslashSequence) -->
+   js_regular_expression_backslash_sequence(BackslashSequence).
+  
+js_regular_expression_class_chars(Chars) --> 
+
+    js_regular_expression_class_char(First), !,
+    js_regular_expression_class_chars(Rest), !,
+    { append(First, Rest, Chars)  }.
+   
+js_regular_expression_class_chars([]) --> [].
+   
+
+js_regular_expression_non_terminator([C]) --> 
+   [C], !, { \+ code_type(C, newline)  }. 
+
+js_regular_expression_first_valid_char([C]) --> 
+   [C], !, { \+ code_type(C, newline), \+ member(C,"*\\/")  }. 
+
+js_regular_expression_common_char([C]) --> 
+   [C], !, { \+ code_type(C, newline), \+ member(C,"\\/")  }. 
+
+tok(Number, _) -->
 	number(Number).
 
-tok(String) -->
+tok(String, _) -->
 	string_tok(String).
 
 js_punctuator(Value, 3) -->
@@ -235,13 +313,13 @@ toks([Tok]) -->
 toks([]) --> [].
 
 
-toks2([Tok|Rest]) -->
+toks2([Tok|Rest], PreviousToken) -->
 	lexical_whitespace,
-	tok(Tok),
-	toks2(Rest).
-toks2([]),[X,Y,Z] --> lexical_whitespace,[X,Y,Z], \+ [_].
-toks2([]) -->[X,Line,Z], [A,B,C], {  throw(unexpectedInput(line(Line), [A,B,C])) }.
-toks2([]) -->[X,Line,Z], { throw(unexpectedInput(line(Line))) }.
+	tok(Tok, PreviousToken),
+	toks2(Rest, Tok).
+toks2([], _),[X,Y,Z] --> lexical_whitespace,[X,Y,Z], \+ [_].
+toks2([], _) -->[X,Line,Z], [A,B,C], {  throw(unexpectedInput(line(Line), [A,B,C])) }.
+toks2([], _) -->[X,Line,Z], { throw(unexpectedInput(line(Line))) }.
 
 lexical_whitespace, [NewPosition, Line, NewWhitespace] -->
 	lex_whitespace_elements(NewWhitespace),
@@ -291,11 +369,11 @@ without_ws([X|Rest1],[X|Rest2]) :-
 without_ws([],[]).
 
 js_lex_string(Str, Toks) :-
-	phrase(toks2(Toks), [0|[1|[[]|Str]]], [_,_,_]).
+	phrase(toks2(Toks, null), [0|[1|[[]|Str]]], [_,_,_]).
 
 js_lex_string2(Str, Toks) :-
 	length(Str,Length),
-	phrase(toks2(Toks), [0|[1|[[]|Str]]], [Length,_,[]]).
+	phrase(toks2(Toks, null), [0|[1|[[]|Str]]], [Length,_,[]]).
 
 
 

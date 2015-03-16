@@ -27,6 +27,11 @@ test_lex_id5 :-
    js_lex_string("an_id_for",
 		 [ tok(id, "an_id_for", _,_,_)]).
 
+test_lex_regex1 :-
+   js_lex_string("/a/",
+		 [ tok(regex, regex_literal("a",""), _,_,_)]).
+
+
 test_lex_two_char_op :-
    js_lex_string("+=",
 		 [ tok(punctuator, "+=", _,_,_)]).
@@ -416,6 +421,7 @@ run_tests :-
         run_test(test_lex_line_numbers2),
         run_test(test_lex_two_char_op),
         run_test(test_lex_two_char_op2),
+        run_test(test_lex_regex1),
 
         run_test(test_parse_basic_literal),
         run_test(test_parse_basic_literal ),
