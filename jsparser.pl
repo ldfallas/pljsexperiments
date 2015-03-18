@@ -44,6 +44,12 @@ js_literal_expression(
               lex_info(Line, PreTokenWhitespace))) -->
    [tok(number, NumericStringValue, _, Line, PreTokenWhitespace)] .
 
+js_literal_expression(
+   js_literal(regex, 
+              Regex,
+              lex_info(Line, PreTokenWhitespace))) -->
+   [tok(regex, Regex, _, Line, PreTokenWhitespace)] .
+
 
 js_identifier_expression(
    js_identifier(IdName,

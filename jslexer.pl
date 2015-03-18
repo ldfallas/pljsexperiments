@@ -146,7 +146,7 @@ tok(ResultTok, PreviousToken),
         ((peek_slash_char,  
            {  regexPossible(PreviousToken) }, 
            js_regex(Result), {
-	       (NewPosition is CurrentPosition + 1),
+	       (NewPosition is CurrentPosition + 2),
                ResultTok = tok(regex, Result, CurrentPosition, Line, PreTokenWs)
            }, !) ;
 
@@ -157,6 +157,7 @@ tok(ResultTok, PreviousToken),
 	})).
 
 regexPossible(null).
+regexPossible(tok(punctuator, Punc, _, _, _)) :- \+ Punc = ")".
 
 peek_slash_char, [Char] -->
    [Char],
