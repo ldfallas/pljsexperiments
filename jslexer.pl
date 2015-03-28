@@ -286,6 +286,7 @@ is_js_punctuator("+").
 is_js_punctuator("-").
 is_js_punctuator("*").
 is_js_punctuator("/").
+is_js_punctuator("%").
 is_js_punctuator(">").
 is_js_punctuator("<").
 is_js_punctuator("!").

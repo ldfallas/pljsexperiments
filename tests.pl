@@ -397,7 +397,63 @@ test_parse_delete_expression :-
                js_identifier("b",_), _)
             ,  _)).
 
+test_parse_multiplication1:-
+   parse_js_expression_string(
+       "x * y",
+        js_binary_operation( 
+            "*",
+            js_identifier("x", _),
+            js_identifier("y", _)
+            ,  _)).
 
+test_parse_multiplication2:-
+   parse_js_expression_string(
+       "x * y * z",
+        js_binary_operation( 
+            "*",
+            js_binary_operation( 
+               "*",
+               js_identifier("x", _),
+               js_identifier("y", _),
+               _),
+            js_identifier("z", _)
+            ,  _)).
+
+test_parse_multiplication3:-
+   parse_js_expression_string(
+       "x % y / z",
+        js_binary_operation( 
+            "/",
+            js_binary_operation( 
+               "%",
+               js_identifier("x", _),
+               js_identifier("y", _),
+               _),
+            js_identifier("z", _)
+            ,  _)).
+
+test_parse_division1:-
+   parse_js_expression_string(
+       "x / y",
+        js_binary_operation( 
+            "/",
+            js_identifier("x", _),
+            js_identifier("y", _)
+            ,  _)).
+
+
+test_parse_division2:-
+   parse_js_expression_string(
+       "x / y / z",
+        js_binary_operation( 
+            "/",
+            js_binary_operation( 
+               "/",
+               js_identifier("x", _),
+               js_identifier("y", _),
+               _),
+            js_identifier("z", _)
+            ,  _)).
 
 run_test(Test) :-
         functor(Test, Name, _),
@@ -470,7 +526,12 @@ run_tests :-
         run_test(test_parse_call_expression_with_args3),
 
         run_test(test_parse_postfix_expression1),
-        run_test(test_parse_delete_expression).
+        run_test(test_parse_delete_expression),
+        run_test(test_parse_multiplication1),
+        run_test(test_parse_multiplication2),
+        run_test(test_parse_multiplication3),
+        run_test(test_parse_division1),
+        run_test(test_parse_division2).
         /*,
 
         run_test(test_parse_function_expression1)*/
