@@ -388,6 +388,15 @@ test_parse_postfix_expression1 :-
             js_identifier("x", _)
             ,  _)).
 
+test_parse_delete_expression :-
+   parse_js_expression_string(
+       "delete a.b",
+        js_delete_expression( 
+            js_dotted_access( 
+               js_identifier("a",_),
+               js_identifier("b",_), _)
+            ,  _)).
+
 
 
 run_test(Test) :-
@@ -460,7 +469,8 @@ run_tests :-
         run_test(test_parse_call_expression_with_args2),
         run_test(test_parse_call_expression_with_args3),
 
-        run_test(test_parse_postfix_expression1).
+        run_test(test_parse_postfix_expression1),
+        run_test(test_parse_delete_expression).
         /*,
 
         run_test(test_parse_function_expression1)*/

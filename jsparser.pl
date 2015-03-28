@@ -21,9 +21,33 @@ js_expression(Ast) -->
     /*js_new_expression(Ast).
     js_left_hand_side_expression(Ast).
  */
+    js_multiplicative_expression(Ast).
+    /*js_postfix_expression(Ast).*/
+
+js_unary_expression(Ast) -->
+   ([tok(keyword, "delete", _, Line, PreTokenWhitespace)],
+    js_unary_expression(InnerAst),
+    { Ast = js_delete_expression(InnerAst, lex_info(Line, PreTokenWhitespace))  }
+   ) ;
     js_postfix_expression(Ast).
+
+js_multiplicative_expression(Ast) -->
+   js_unary_expression(UnaryExpr),
+   ( js_multiplicative_sequence(UnaryExpr, Ast)
+    ; { Ast = UnaryExpr }).
+
+
+js_multiplicative_operator(Op, Line, PreTokenWhitespace ) -->
+  [tok(punctuator, Op, _, Line, PreTokenWhitespace)],
+  { member(Op, ["*", "%", "/"]) }. 
     
+js_multiplicative_sequence(Left, Ast) -->
+   js_multiplicative_operator(Op,Line,PreTokenWhitespace), 
+   js_unary_expression(Right),
+   { ResultAst = js_binary_operation(Op, Left, Right, lex_info(Line, PreTokenWhitespace)) },
+   js_multiplicative_sequence(ResultAst, Ast).
    
+js_multiplicative_sequence(Left, Ast) --> { Ast = Left }.
 
 js_primary_expression(Ast) -->
    js_literal_expression(Ast) 
@@ -225,4 +249,12 @@ js_postfix_increment_expression(Expr, FinalExpr) -->
      FinalExpr = js_postfix_expression(Expr, lex_info(1))  }) ;
    { FinalExpr = Expr }.
 
+
+test_pp(js_binary_operation(Op, Left, Right, _), Result) :- 
+   test_pp(Left, LeftStr),
+   append(LeftStr, Op,Tmp1),
+   test_pp(Right, RightStr),
+   append(Tmp1, RightStr,Result).
+
+test_pp(js_identifier(Result, _), Result).
 

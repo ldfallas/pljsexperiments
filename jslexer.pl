@@ -304,6 +304,7 @@ is_jskeyword("return").
 is_jskeyword("true").
 is_jskeyword("false").
 is_jskeyword("new").
+is_jskeyword("delete").
 
 toks([Tok|[Sep|Rest]]) -->
 	tok(Tok),
