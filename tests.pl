@@ -432,6 +432,29 @@ test_parse_multiplication3:-
             js_identifier("z", _)
             ,  _)).
 
+test_parse_additive1 :-
+   parse_js_expression_string(
+       "x + y",
+       js_binary_operation( 
+          "+",
+          js_identifier("x", _),
+          js_identifier("y", _),
+          _)).
+
+test_parse_additive2 :-
+   parse_js_expression_string(
+       "x + y * z",
+        js_binary_operation( 
+            "+",
+            js_identifier("x", _),
+            js_binary_operation( 
+               "*",
+               js_identifier("y", _),
+               js_identifier("z", _),
+               _) ,
+           _)).
+
+
 test_parse_division1:-
    parse_js_expression_string(
        "x / y",
@@ -531,7 +554,9 @@ run_tests :-
         run_test(test_parse_multiplication2),
         run_test(test_parse_multiplication3),
         run_test(test_parse_division1),
-        run_test(test_parse_division2).
+        run_test(test_parse_division2),
+        run_test(test_parse_additive1),
+        run_test(test_parse_additive2).
         /*,
 
         run_test(test_parse_function_expression1)*/

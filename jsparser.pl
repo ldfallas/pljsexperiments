@@ -21,7 +21,7 @@ js_expression(Ast) -->
     /*js_new_expression(Ast).
     js_left_hand_side_expression(Ast).
  */
-    js_multiplicative_expression(Ast).
+    js_additive_expression(Ast).
     /*js_postfix_expression(Ast).*/
 
 js_unary_expression(Ast) -->
@@ -48,6 +48,26 @@ js_multiplicative_sequence(Left, Ast) -->
    js_multiplicative_sequence(ResultAst, Ast).
    
 js_multiplicative_sequence(Left, Ast) --> { Ast = Left }.
+
+js_additive_expression(Ast) -->
+   js_multiplicative_expression(UnaryExpr),
+   ( js_additive_sequence(UnaryExpr, Ast)
+    ; { Ast = UnaryExpr }).
+
+
+js_additive_operator(Op, Line, PreTokenWhitespace ) -->
+  [tok(punctuator, Op, _, Line, PreTokenWhitespace)],
+  { member(Op, ["+", "-"]) }. 
+    
+js_additive_sequence(Left, Ast) -->
+   js_additive_operator(Op,Line,PreTokenWhitespace), 
+   js_multiplicative_expression(Right),
+   { ResultAst = js_binary_operation(Op, Left, Right, lex_info(Line, PreTokenWhitespace)) },
+   js_additive_sequence(ResultAst, Ast).
+   
+js_additive_sequence(Left, Ast) --> { Ast = Left }.
+
+
 
 js_primary_expression(Ast) -->
    js_literal_expression(Ast) 
