@@ -17,12 +17,7 @@ trace_parse_js_expression_string(CodeString, Ast) :-
 
 
 js_expression(Ast) -->
-    /* js_primary_expression(Ast). */
-    /*js_new_expression(Ast).
-    js_left_hand_side_expression(Ast).
- */
-    js_additive_expression(Ast).
-    /*js_postfix_expression(Ast).*/
+        js_additive_expression(Ast).
 
 js_unary_expression(Ast) -->
    ([tok(keyword, "delete", _, Line, PreTokenWhitespace)],
@@ -50,6 +45,29 @@ js_multiplicative_sequence(Left, Ast) -->
 js_multiplicative_sequence(Left, Ast) --> { Ast = Left }.
 
 js_additive_expression(Ast) -->
+   js_binary_operator_expression(js_multiplicative_expression, ["+","-"],Ast).
+
+js_binary_operator_expression(ExpressionPredicate, Operators, Ast) -->
+   call_operator_dcg(ExpressionPredicate, Expr),
+   ( js_binary_operator_sequence(ExpressionPredicate, Operators, Expr, Ast)
+    ;  { Ast = Expr } ).
+
+js_binary_operator(Choices, Op, Line, PreTokenWhitespace ) -->
+  [tok(punctuator, Op, _, Line, PreTokenWhitespace)],
+  { member(Op, Choices) }. 
+    
+js_binary_operator_sequence(ExpressionPredicate,Operators, Left, Ast) -->
+   js_binary_operator(Operators, Op,Line,PreTokenWhitespace), 
+   call_operator_dcg(ExpressionPredicate, Right),
+   { ResultAst = js_binary_operation(Op, Left, Right, lex_info(Line, PreTokenWhitespace)) },
+   js_binary_operator_sequence(ExpressionPredicate,Operators, ResultAst, Ast).
+
+js_binary_operator_sequence(_,_, Left, Ast) --> { Ast = Left }.
+
+call_operator_dcg(OperatorDcgBody, Ast, State0, StateN) :- 
+   call(OperatorDcgBody, Ast, State0, StateN).
+/*
+js_additive_expression(Ast) -->
    js_multiplicative_expression(UnaryExpr),
    ( js_additive_sequence(UnaryExpr, Ast)
     ; { Ast = UnaryExpr }).
@@ -67,6 +85,7 @@ js_additive_sequence(Left, Ast) -->
    
 js_additive_sequence(Left, Ast) --> { Ast = Left }.
 
+*/
 
 
 js_primary_expression(Ast) -->
