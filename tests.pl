@@ -454,8 +454,35 @@ test_parse_additive2 :-
                _) ,
            _)).
 
+test_parse_shift1 :-
+   parse_js_expression_string(
+       "x >> y",
+       js_binary_operation( 
+          ">>",
+          js_identifier("x", _),
+          js_identifier("y", _),
+          _)).
 
-test_parse_division1:-
+test_parse_shift2 :-
+   parse_js_expression_string(
+       "x << y",
+       js_binary_operation( 
+          "<<",
+          js_identifier("x", _),
+          js_identifier("y", _),
+          _)).
+
+test_parse_shift3 :-
+   parse_js_expression_string(
+       "x >>> y",
+       js_binary_operation( 
+          ">>>",
+          js_identifier("x", _),
+          js_identifier("y", _),
+          _)).
+
+
+test_parse_division1 :-
    parse_js_expression_string(
        "x / y",
         js_binary_operation( 
@@ -556,7 +583,10 @@ run_tests :-
         run_test(test_parse_division1),
         run_test(test_parse_division2),
         run_test(test_parse_additive1),
-        run_test(test_parse_additive2).
+        run_test(test_parse_additive2),
+        run_test(test_parse_shift1),
+        run_test(test_parse_shift2),
+        run_test(test_parse_shift3).
         /*,
 
         run_test(test_parse_function_expression1)*/

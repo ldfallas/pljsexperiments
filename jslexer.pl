@@ -268,6 +268,8 @@ two_char_punctuator(">=").
 two_char_punctuator("||").
 two_char_punctuator("&&").
 two_char_punctuator("++").
+two_char_punctuator("<<").
+two_char_punctuator(">>").
 
 
 

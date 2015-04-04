@@ -17,7 +17,7 @@ trace_parse_js_expression_string(CodeString, Ast) :-
 
 
 js_expression(Ast) -->
-        js_additive_expression(Ast).
+      js_relational_expression(Ast).
 
 js_unary_expression(Ast) -->
    ([tok(keyword, "delete", _, Line, PreTokenWhitespace)],
@@ -47,14 +47,22 @@ js_multiplicative_sequence(Left, Ast) --> { Ast = Left }.
 js_additive_expression(Ast) -->
    js_binary_operator_expression(js_multiplicative_expression, ["+","-"],Ast).
 
+js_shift_expression(Ast) -->
+   js_binary_operator_expression(js_additive_expression, ["<<", ">>", ">>>"],Ast).
+
+js_relational_expression(Ast) -->
+   js_binary_operator_expression(js_shift_expression, 
+         ["<", ">", "<=",">=", "instanceof", "in"],Ast).
+
 js_binary_operator_expression(ExpressionPredicate, Operators, Ast) -->
    call_operator_dcg(ExpressionPredicate, Expr),
-   ( js_binary_operator_sequence(ExpressionPredicate, Operators, Expr, Ast)
+   ( js_binary_operator_sequence(ExpressionPredicate, Operators, Expr, Ast), !
     ;  { Ast = Expr } ).
 
 js_binary_operator(Choices, Op, Line, PreTokenWhitespace ) -->
-  [tok(punctuator, Op, _, Line, PreTokenWhitespace)],
-  { member(Op, Choices) }. 
+  [tok(TokenKind, Op, _, Line, PreTokenWhitespace)],
+  { member(Op, Choices), 
+    ( (TokenKind = punctuator,!) ; (TokenKind = keyword,!) ) }. 
     
 js_binary_operator_sequence(ExpressionPredicate,Operators, Left, Ast) -->
    js_binary_operator(Operators, Op,Line,PreTokenWhitespace), 
@@ -66,26 +74,6 @@ js_binary_operator_sequence(_,_, Left, Ast) --> { Ast = Left }.
 
 call_operator_dcg(OperatorDcgBody, Ast, State0, StateN) :- 
    call(OperatorDcgBody, Ast, State0, StateN).
-/*
-js_additive_expression(Ast) -->
-   js_multiplicative_expression(UnaryExpr),
-   ( js_additive_sequence(UnaryExpr, Ast)
-    ; { Ast = UnaryExpr }).
-
-
-js_additive_operator(Op, Line, PreTokenWhitespace ) -->
-  [tok(punctuator, Op, _, Line, PreTokenWhitespace)],
-  { member(Op, ["+", "-"]) }. 
-    
-js_additive_sequence(Left, Ast) -->
-   js_additive_operator(Op,Line,PreTokenWhitespace), 
-   js_multiplicative_expression(Right),
-   { ResultAst = js_binary_operation(Op, Left, Right, lex_info(Line, PreTokenWhitespace)) },
-   js_additive_sequence(ResultAst, Ast).
-   
-js_additive_sequence(Left, Ast) --> { Ast = Left }.
-
-*/
 
 
 js_primary_expression(Ast) -->
