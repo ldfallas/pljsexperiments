@@ -17,7 +17,7 @@ trace_parse_js_expression_string(CodeString, Ast) :-
 
 
 js_expression(Ast) -->
-      js_relational_expression(Ast).
+     js_equality_expression(Ast).
 
 js_unary_expression(Ast) -->
    ([tok(keyword, "delete", _, Line, PreTokenWhitespace)],
@@ -53,6 +53,10 @@ js_shift_expression(Ast) -->
 js_relational_expression(Ast) -->
    js_binary_operator_expression(js_shift_expression, 
          ["<", ">", "<=",">=", "instanceof", "in"],Ast).
+
+js_equality_expression(Ast) -->
+   js_binary_operator_expression(js_relational_expression, 
+         ["==", "!=", "===","!=="],Ast).
 
 js_binary_operator_expression(ExpressionPredicate, Operators, Ast) -->
    call_operator_dcg(ExpressionPredicate, Expr),

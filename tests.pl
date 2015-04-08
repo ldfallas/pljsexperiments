@@ -505,6 +505,17 @@ test_parse_division2:-
             js_identifier("z", _)
             ,  _)).
 
+test_parse_equality1 :-
+   parse_js_expression_string(
+       "x == y",
+        js_binary_operation( 
+            "==",
+            js_identifier("x", _),
+            js_identifier("y", _)
+            ,  _)).
+
+
+
 run_test(Test) :-
         functor(Test, Name, _),
         (call(Test) -> writef(" PASS") ;
@@ -586,7 +597,9 @@ run_tests :-
         run_test(test_parse_additive2),
         run_test(test_parse_shift1),
         run_test(test_parse_shift2),
-        run_test(test_parse_shift3).
+        run_test(test_parse_shift3),
+        run_test(test_parse_equality1).
+
         /*,
 
         run_test(test_parse_function_expression1)*/

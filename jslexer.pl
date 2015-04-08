@@ -270,7 +270,8 @@ two_char_punctuator("&&").
 two_char_punctuator("++").
 two_char_punctuator("<<").
 two_char_punctuator(">>").
-
+two_char_punctuator("==").
+two_char_punctuator("!=").
 
 
 is_js_punctuator(";").
