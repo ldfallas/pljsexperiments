@@ -514,6 +514,16 @@ test_parse_equality1 :-
             js_identifier("y", _)
             ,  _)).
 
+test_parse_equality2 :-
+   parse_js_expression_string(
+       "1 + 2 == 1 + 1 + 1",
+        js_binary_operation( 
+            "==", 
+            js_binary_operation("+", _ , _ , _) ,
+            _
+            /*js_identifier("x", _),
+            js_identifier("y", _)*/
+            ,  _)).
 
 
 run_test(Test) :-
@@ -598,7 +608,8 @@ run_tests :-
         run_test(test_parse_shift1),
         run_test(test_parse_shift2),
         run_test(test_parse_shift3),
-        run_test(test_parse_equality1).
+        run_test(test_parse_equality1),
+        run_test(test_parse_equality2).
 
         /*,
 
