@@ -23,6 +23,7 @@ test_lex_id3 :-
 test_lex_id4 :-
    js_lex_string("$",
 		 [ tok(id, "$", _,_,_)]).
+		 
 test_lex_id5 :-
    js_lex_string("an_id_for",
 		 [ tok(id, "an_id_for", _,_,_)]).
@@ -630,7 +631,8 @@ member([_|Rest],X) :- member(Rest,X).*/
 
 
 test(Pairs) :-
-   generate_test_operations([['*','/'],['+','-'],
+   generate_test_operations([['*','/'],['+','-'],
+
 ['<<','>>','>>>'],['>','<','>=','<=']], ['x','y'], Pairs).
 
 testStr(Str) :-
