@@ -13,8 +13,11 @@ test(Pairs) :-
                               ['^'],
                               ['|'],
                               ['&&'],
-                              ['||']
-                              ], 
+                              ['||'],
+                              ['=']/*,
+                              ['*=', '/=','%=','+=','-=','<<=',
+                               '>>=', '>>>=', '&=', '^=', '!=']*/
+                            ], 
                             ['x','y'], Pairs).
 
 testStr(Str) :-
@@ -31,8 +34,14 @@ test_parse_stat(Str) :-
    /*((parse_js_expression_string(Str,JsAst) , !) ; writef("FAIL")).*/
 
 try_alternative(Str,JsAst) :-
+   (\+ parse_js_expression_string(Str,JsAst))
+      /*
+      ,
+   format("FAIL ~s~n",[Str])*/.
+   /*
    ((parse_js_expression_string(Str,JsAst) , !) 
      ; format("FAIL ~s~n",[Str])).
+     */
 
 test_nodes_to_string(Var,Str) :-
    atom(Var),

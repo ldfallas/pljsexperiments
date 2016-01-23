@@ -17,7 +17,9 @@ trace_parse_js_expression_string(CodeString, Ast) :-
 
 
 js_expression(Ast) -->
-     js_equality_expression(Ast).
+    /* js_equality_expression(Ast).*/
+     js_or_expression(Ast).
+     /*js_binary_or_expression(Ast).*/
 
 js_unary_expression(Ast) -->
    ([tok(keyword, "delete", _, Line, PreTokenWhitespace)],
@@ -57,6 +59,26 @@ js_relational_expression(Ast) -->
 js_equality_expression(Ast) -->
    js_binary_operator_expression(js_relational_expression, 
          ["==", "!=", "===","!=="],Ast).
+
+js_binary_and_expression(Ast) -->
+   js_binary_operator_expression(js_equality_expression, 
+         ["&"],Ast).
+
+js_binary_xor_expression(Ast) -->
+   js_binary_operator_expression(js_binary_and_expression, 
+         ["^"],Ast).
+
+js_binary_or_expression(Ast) -->
+   js_binary_operator_expression(js_binary_xor_expression, 
+         ["|"],Ast).
+
+js_and_expression(Ast) -->
+   js_binary_operator_expression(js_binary_or_expression, 
+         ["&&"],Ast).
+
+js_or_expression(Ast) -->
+   js_binary_operator_expression(js_and_expression, 
+         ["||"],Ast).
 
 js_binary_operator_expression(ExpressionPredicate, Operators, Ast) -->
    call_operator_dcg(ExpressionPredicate, Expr),
@@ -112,10 +134,10 @@ js_identifier_expression(
    [tok(id, IdName, _, Line, PreTokenWhitespace)] .
 
 
-js_par_expression(js_par(Expr, lex_info(Line, PreTokenWhitespace))) -->
-   [tok(punctuator, "(", _, Line, PreTokenWhitespace)],
+js_par_expression(js_par(Expr, lex_info(Line, PreTokenWhitespace1))) -->
+   [tok(punctuator, "(", _, Line, PreTokenWhitespace1)],
    js_expression(Expr),
-   [tok(punctuator, ")", _, Line, PreTokenWhitespace)].
+   [tok(punctuator, ")", _, Line, PreTokenWhitespace2)].
 
 js_member_expression(Ast) -->
     js_simple_member_expression(LeftExprAst),

@@ -179,6 +179,10 @@ test_parse_basic_id :-
 test_parse_parenthesized:-
    parse_js_expression_string("((a))", js_par(js_par(js_identifier("a",_),_),_)).
 
+test_parse_parenthesized2:-
+   parse_js_expression_string("(   (a)  )", js_par(js_par(js_identifier("a",_),_),_)).
+
+
 test_parse_newExpr1:-
    parse_js_expression_string("new Foo()",js_new( js_identifier("Foo",_), js_arguments([],_) , _) ).
 
@@ -569,6 +573,7 @@ run_tests :-
         run_test(test_parse_basic_literal ),
         run_test(test_parse_basic_id ),
         run_test(test_parse_parenthesized),
+        run_test(test_parse_parenthesized2),
         run_test(test_parse_newExpr1),
 
         run_test(test_parse_newExpr2),
@@ -646,7 +651,7 @@ test_parse_stat(Str) :-
    test_nodes_to_jsast(Pair, JsAst),
    ( ( (\+ parse_js_expression_string(Str,JsAst)), writef(" FAIL"))
    /*  ; (writef(" FAIL") */
-     )).
+     ).
 
 test_nodes_to_string(Var,Str) :-
    atom(Var),
