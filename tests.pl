@@ -545,6 +545,8 @@ test_structural1 :-
         AST2),!,
    compare_ignoring_lex(AST1,AST2).
 
+
+
 test_structural2 :-
    parse_js_expression_string(
        "(x==y)",
@@ -553,6 +555,29 @@ test_structural2 :-
        "(x    ==      x   ) ",
         AST2),!,
    \+ compare_ignoring_lex(AST1,AST2).
+ 
+test_parse_conditional :-
+   parse_js_expression_string(
+       "x ? y : z",
+        js_conditional( 
+            js_identifier("x", _),
+            js_identifier("y", _),
+            js_identifier("z", _),
+             _)).
+
+
+test_parse_conditional_chained :-
+   parse_js_expression_string(
+       "x ? y : z ?  k : m",
+        js_conditional( 
+            js_identifier("x", _),
+            js_identifier("y", _),
+	    js_conditional(
+                js_identifier("z", _),
+		js_identifier("k", _),
+		js_identifier("m", _),
+		_),
+             _)).
 
 
 run_test(Test) :-
@@ -659,7 +684,9 @@ run_tests :-
         run_test(test_parse_equality1),
         run_test(test_parse_equality2),
         run_test(test_structural1),
-        run_test(test_structural2).
+        run_test(test_structural2),
+        run_test(test_parse_conditional),
+	run_test(test_parse_conditional_chained).
 
         /*,
 

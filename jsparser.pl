@@ -18,7 +18,7 @@ trace_parse_js_expression_string(CodeString, Ast) :-
 
 js_expression(Ast) -->
     /* js_equality_expression(Ast).*/
-     js_or_expression(Ast).
+     js_conditional_expression(Ast).
      /*js_binary_or_expression(Ast).*/
 
 js_unary_expression(Ast) -->
@@ -79,6 +79,15 @@ js_and_expression(Ast) -->
 js_or_expression(Ast) -->
    js_binary_operator_expression(js_and_expression, 
          ["||"],Ast).
+
+js_conditional_expression(Ast) --> 
+    js_or_expression(Expr),
+    (([tok(punctuator, "?", _, Line, PreTokenWhitespace)],
+      js_assignment_expression(ThenExpr),
+       [tok(punctuator, ":", _, Line2, PreTokenWhitespace2)],
+       js_assignment_expression(ElseExpr),
+       { Ast = js_conditional(Expr,ThenExpr, ElseExpr, PreTokenWhitespace)})
+    ; { Ast = Expr}).
 
 js_binary_operator_expression(ExpressionPredicate, Operators, Ast) -->
    call_operator_dcg(ExpressionPredicate, Expr),
@@ -313,19 +322,3 @@ test_pp(js_identifier(Result, _), Result).
 
 
 
-compare_ignoring_lex_list([],[]).
-
-compare_ignoring_lex_list([X1|X2],[Y1|Y2]) :-
-    compare_ignoring_lex(X1,Y1),
-    compare_ignoring_lex_list(X2,Y2).
-   
-compare_ignoring_lex(lex_info(_,_),lex_info(_,_)).
-
-compare_ignoring_lex(X,X).
-
-compare_ignoring_lex(X,Y) :-
-   functor(X,_,A1), A1 > 0,
-   functor(Y,_,A2), A2 > 0,!,
-   X =.. Parts1,
-   Y =.. Parts2,
-   compare_ignoring_lex_list(Parts1,Parts2).
