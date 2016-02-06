@@ -536,6 +536,25 @@ test_parse_equality2 :-
             ,  _)).
 
 
+test_structural1 :-
+   parse_js_expression_string(
+       "(x==y)",
+        AST1),!,
+   parse_js_expression_string(
+       "(x    ==      y   ) ",
+        AST2),!,
+   compare_ignoring_lex(AST1,AST2).
+
+test_structural2 :-
+   parse_js_expression_string(
+       "(x==y)",
+        AST1),!,
+   parse_js_expression_string(
+       "(x    ==      x   ) ",
+        AST2),!,
+   \+ compare_ignoring_lex(AST1,AST2).
+
+
 run_test(Test) :-
         functor(Test, Name, _),
         (call(Test) -> writef(" PASS") ;
@@ -543,6 +562,24 @@ run_test(Test) :-
         writef("\t\t"),
         writef(Name),
         writef("\n").
+
+
+compare_ignoring_lex_list([],[]).
+
+compare_ignoring_lex_list([X1|X2],[Y1|Y2]) :-
+    compare_ignoring_lex(X1,Y1),
+    compare_ignoring_lex_list(X2,Y2).
+   
+compare_ignoring_lex(lex_info(_,_),lex_info(_,_)).
+
+compare_ignoring_lex(X,X).
+
+compare_ignoring_lex(X,Y) :-
+   functor(X,_,A1), A1 > 0,
+   functor(Y,_,A2), A2 > 0,!,
+   X =.. Parts1,
+   Y =.. Parts2,
+   compare_ignoring_lex_list(Parts1,Parts2).
 
 
 run_tests :-
@@ -620,7 +657,9 @@ run_tests :-
         run_test(test_parse_shift2),
         run_test(test_parse_shift3),
         run_test(test_parse_equality1),
-        run_test(test_parse_equality2).
+        run_test(test_parse_equality2),
+        run_test(test_structural1),
+        run_test(test_structural2).
 
         /*,
 

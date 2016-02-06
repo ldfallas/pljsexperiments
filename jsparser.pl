@@ -311,3 +311,21 @@ test_pp(js_binary_operation(Op, Left, Right, _), Result) :-
 
 test_pp(js_identifier(Result, _), Result).
 
+
+
+compare_ignoring_lex_list([],[]).
+
+compare_ignoring_lex_list([X1|X2],[Y1|Y2]) :-
+    compare_ignoring_lex(X1,Y1),
+    compare_ignoring_lex_list(X2,Y2).
+   
+compare_ignoring_lex(lex_info(_,_),lex_info(_,_)).
+
+compare_ignoring_lex(X,X).
+
+compare_ignoring_lex(X,Y) :-
+   functor(X,_,A1), A1 > 0,
+   functor(Y,_,A2), A2 > 0,!,
+   X =.. Parts1,
+   Y =.. Parts2,
+   compare_ignoring_lex_list(Parts1,Parts2).
