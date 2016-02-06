@@ -2,6 +2,11 @@
 
 :- use_module(jslexer).
 
+parse_js_stat_string(CodeString, Ast) :- 
+   js_lex_string(CodeString, Toks), 
+   !, /* just one  chance to tokenize the string */
+   phrase(js_statement(Ast), Toks).
+
 parse_js_expression_string(CodeString, Ast) :- 
    js_lex_string(CodeString, Toks), 
    !, /* just one  chance to tokenize the string */
@@ -310,6 +315,20 @@ js_postfix_increment_expression(Expr, FinalExpr) -->
    { (\+ member(ws(_, true), Whitespace_elements), !),
      FinalExpr = js_postfix_expression(Expr, lex_info(1))  }) ;
    { FinalExpr = Expr }.
+
+
+js_statement(Ast) -->
+    js_return_statement(Ast).
+
+js_return_statement(js_return(lex_info(Line1,PreTokenWhitespace1 ))) -->
+   [tok(keyword, "return", _, Line1, PreTokenWhitespace1)],
+   [tok(punctuator, ";", _, Line2, PreTokenWhitespace2)].
+
+js_return_statement(js_return(Expr, lex_info(Line1,PreTokenWhitespace1 ))) -->
+   [tok(keyword, "return", _, Line1, PreTokenWhitespace1)],
+   js_expression(Expr),
+   [tok(punctuator, ";", _, Line2, PreTokenWhitespace2)].
+
 
 
 test_pp(js_binary_operation(Op, Left, Right, _), Result) :- 
