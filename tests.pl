@@ -579,6 +579,39 @@ test_parse_conditional_chained :-
 		_),
              _)).
 
+test_return_statement :-
+   parse_js_stat_string(
+       "return x;",
+        js_return( 
+            js_identifier("x", _),
+            _)).
+
+test_return_statement2 :-
+   parse_js_stat_string(
+       "return;",
+        js_return(_)).
+
+
+test_if_statement_no_else :-
+   parse_js_stat_string(
+       "if (x)
+           return 1;",
+       js_if( 
+            js_identifier("x", _),
+            js_return(js_literal(number,"1", _),_),
+            _)).
+
+test_if_statement_with_else :-
+   parse_js_stat_string(
+       "if (x)
+           return 1;
+        else 
+           return 2;",
+       js_if( 
+            js_identifier("x", _),
+            js_return(js_literal(number,"1", _),_),
+            js_return(js_literal(number,"2", _),_),_)).
+
 
 run_test(Test) :-
         functor(Test, Name, _),
@@ -686,7 +719,11 @@ run_tests :-
         run_test(test_structural1),
         run_test(test_structural2),
         run_test(test_parse_conditional),
-	run_test(test_parse_conditional_chained).
+	run_test(test_parse_conditional_chained),
+        run_test(test_return_statement),
+        run_test(test_return_statement2),
+        run_test(test_if_statement_with_else),
+        run_test(test_if_statement_no_else).
 
         /*,
 

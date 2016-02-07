@@ -1,4 +1,4 @@
-:- module(jsparser, [parse_js_expression_string/2 ]).
+:- module(jsparser, [parse_js_expression_string/2,parse_js_stat_string/2 ]).
 
 :- use_module(jslexer).
 
@@ -318,7 +318,8 @@ js_postfix_increment_expression(Expr, FinalExpr) -->
 
 
 js_statement(Ast) -->
-    js_return_statement(Ast).
+    js_return_statement(Ast)
+    ; js_if_statement(Ast).
 
 js_return_statement(js_return(lex_info(Line1,PreTokenWhitespace1 ))) -->
    [tok(keyword, "return", _, Line1, PreTokenWhitespace1)],
@@ -329,6 +330,18 @@ js_return_statement(js_return(Expr, lex_info(Line1,PreTokenWhitespace1 ))) -->
    js_expression(Expr),
    [tok(punctuator, ";", _, Line2, PreTokenWhitespace2)].
 
+js_if_statement(Ast) -->
+   [tok(keyword, "if", _, Line1, PreTokenWhitespace1)],
+   [tok(punctuator, "(", _, Line2, PreTokenWhitespace2)],
+
+   js_expression(Condition),
+   [tok(punctuator, ")", _, Line3, PreTokenWhitespace3)],   
+   js_statement(ThenStat),
+   ((
+      [tok(keyword, "else", _, Line4, PreTokenWhitespace4)],
+       js_statement(ElseStat),
+       { Ast = js_if(Condition, ThenStat, ElseStat, lex_info(Line1, PreTokenWhitespace1))})
+   ; ( { Ast = js_if(Condition, ThenStat, lex_info(Line1, PreTokenWhitespace1  )) }) ).
 
 
 test_pp(js_binary_operation(Op, Left, Right, _), Result) :- 
