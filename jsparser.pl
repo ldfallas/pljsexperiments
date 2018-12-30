@@ -3,12 +3,14 @@
 :- use_module(jslexer).
 
 parse_js_stat_string(CodeString, Ast) :- 
-   js_lex_string(CodeString, Toks), 
+   string_to_list(CodeString, CodeStringLst),
+   js_lex_string(CodeStringLst, Toks), 
    !, /* just one  chance to tokenize the string */
    phrase(js_statement(Ast), Toks).
 
 parse_js_expression_string(CodeString, Ast) :- 
-   js_lex_string(CodeString, Toks), 
+   string_to_list(CodeString, CodeStringLst),
+   js_lex_string(CodeStringLst, Toks), 
    !, /* just one  chance to tokenize the string */
    phrase(js_expression(Ast), Toks).
 
@@ -27,7 +29,7 @@ js_expression(Ast) -->
      /*js_binary_or_expression(Ast).*/
 
 js_unary_expression(Ast) -->
-   ([tok(keyword, "delete", _, Line, PreTokenWhitespace)],
+   ([tok(keyword, `delete`, _, Line, PreTokenWhitespace)],
     js_unary_expression(InnerAst),
     { Ast = js_delete_expression(InnerAst, lex_info(Line, PreTokenWhitespace))  }
    ) ;
@@ -41,7 +43,7 @@ js_multiplicative_expression(Ast) -->
 
 js_multiplicative_operator(Op, Line, PreTokenWhitespace ) -->
   [tok(punctuator, Op, _, Line, PreTokenWhitespace)],
-  { member(Op, ["*", "%", "/"]) }. 
+  { member(Op, [`*`, `%`, `/`]) }. 
     
 js_multiplicative_sequence(Left, Ast) -->
    js_multiplicative_operator(Op,Line,PreTokenWhitespace), 
@@ -52,44 +54,44 @@ js_multiplicative_sequence(Left, Ast) -->
 js_multiplicative_sequence(Left, Ast) --> { Ast = Left }.
 
 js_additive_expression(Ast) -->
-   js_binary_operator_expression(js_multiplicative_expression, ["+","-"],Ast).
+   js_binary_operator_expression(js_multiplicative_expression, [`+`,`-`],Ast).
 
 js_shift_expression(Ast) -->
-   js_binary_operator_expression(js_additive_expression, ["<<", ">>", ">>>"],Ast).
+   js_binary_operator_expression(js_additive_expression, [`<<`, `>>`, `>>>`],Ast).
 
 js_relational_expression(Ast) -->
    js_binary_operator_expression(js_shift_expression, 
-         ["<", ">", "<=",">=", "instanceof", "in"],Ast).
+         [`<`, `>`, `<=`,`>=`, `instanceof`, `in`],Ast).
 
 js_equality_expression(Ast) -->
    js_binary_operator_expression(js_relational_expression, 
-         ["==", "!=", "===","!=="],Ast).
+         [`==`, `!=`, `===`,`!==`],Ast).
 
 js_binary_and_expression(Ast) -->
    js_binary_operator_expression(js_equality_expression, 
-         ["&"],Ast).
+         [`&`],Ast).
 
 js_binary_xor_expression(Ast) -->
    js_binary_operator_expression(js_binary_and_expression, 
-         ["^"],Ast).
+         [`^`],Ast).
 
 js_binary_or_expression(Ast) -->
    js_binary_operator_expression(js_binary_xor_expression, 
-         ["|"],Ast).
+         [`|`],Ast).
 
 js_and_expression(Ast) -->
    js_binary_operator_expression(js_binary_or_expression, 
-         ["&&"],Ast).
+         [`&&`],Ast).
 
 js_or_expression(Ast) -->
    js_binary_operator_expression(js_and_expression, 
-         ["||"],Ast).
+         [`||`],Ast).
 
 js_conditional_expression(Ast) --> 
     js_or_expression(Expr),
-    (([tok(punctuator, "?", _, Line, PreTokenWhitespace)],
+    (([tok(punctuator, `?`, _, Line, PreTokenWhitespace)],
       js_assignment_expression(ThenExpr),
-       [tok(punctuator, ":", _, Line2, PreTokenWhitespace2)],
+       [tok(punctuator, `:`, _, Line2, PreTokenWhitespace2)],
        js_assignment_expression(ElseExpr),
        { Ast = js_conditional(Expr,ThenExpr, ElseExpr, PreTokenWhitespace)})
     ; { Ast = Expr}).
@@ -149,9 +151,9 @@ js_identifier_expression(
 
 
 js_par_expression(js_par(Expr, lex_info(Line, PreTokenWhitespace1))) -->
-   [tok(punctuator, "(", _, Line, PreTokenWhitespace1)],
+   [tok(punctuator, `(`, _, Line, PreTokenWhitespace1)],
    js_expression(Expr),
-   [tok(punctuator, ")", _, Line, PreTokenWhitespace2)].
+   [tok(punctuator, `)`, _, Line, PreTokenWhitespace2)].
 
 js_member_expression(Ast) -->
     js_simple_member_expression(LeftExprAst),
@@ -173,27 +175,27 @@ js_simple_member_expression(Ast) -->
 
 
 js_function_expression(js_function_expression(Params, Body, lex_info(Line, PreTokenWhitespace))) -->
-   [tok(keyword, "function", _, Line, PreTokenWhitespace)],
-   [tok(punctuator, "(", _, Line1, PreTokenWhitespace1)],
+   [tok(keyword, `function`, _, Line, PreTokenWhitespace)],
+   [tok(punctuator, `(`, _, Line1, PreTokenWhitespace1)],
    js_formal_parameter_list(Params),
-   [tok(punctuator, ")", _, Line2, PreTokenWhitespace2)],
+   [tok(punctuator, `)`, _, Line2, PreTokenWhitespace2)],
    js_statement_block(Body).
 
 js_formal_parameter_list([Param | Rest]) --> 
    js_identifier_expression(Param),
-   [tok(punctuator, ",", _, _, _)],
+   [tok(punctuator, `,`, _, _, _)],
    js_formal_parameter_list(Rest).
    
 js_formal_parameter_list([Param]) --> 
    js_identifier_expression(Param).
 
 js_statement_block([]) -->
-  [tok(punctuator, "{", _, Line, PreTokenWhitespace)],
-  [tok(punctuator, "}", _, Line2, PreTokenWhitespace2)].
+  [tok(punctuator, `{`, _, Line, PreTokenWhitespace)],
+  [tok(punctuator, `}`, _, Line2, PreTokenWhitespace2)].
 
 js_dotted_access_expression(Expr,  FinalResult) -->
   /*js_member_expression(Expr),*/
-  [tok(punctuator, ".", _, Line, PreTokenWhitespace)],
+  [tok(punctuator, `.`, _, Line, PreTokenWhitespace)],
   js_identifier_expression(Identifier),
   {
      Result = js_dotted_access(Expr, Identifier,lex_info(Line,PreTokenWhitespace))
@@ -201,9 +203,9 @@ js_dotted_access_expression(Expr,  FinalResult) -->
 
 js_array_access_expression(MemberExpr, FinalResult /*js_array_access(MemberExpr, IndexExpr, lex_info(Line,PreTokenWhitespace))*/) -->
   /*js_member_expression(MemberExpr),*/
-  [tok(punctuator, "[", _, Line, PreTokenWhitespace)],
+  [tok(punctuator, `[`, _, Line, PreTokenWhitespace)],
   js_expression(IndexExpr),
-  [tok(punctuator, "]", _, Line2, PreTokenWhitespace2)],
+  [tok(punctuator, `]`, _, Line2, PreTokenWhitespace2)],
   { Result = js_array_access(MemberExpr, IndexExpr, lex_info(Line,PreTokenWhitespace)) },
   (   js_member_access_expression(Result, FinalResult); { FinalResult = Result } ).
 
@@ -212,22 +214,22 @@ js_new_expression(Ast) -->
    ; js_new_object_expression(Ast).
 
 js_new_object_expression(js_new(Expr, lex_info(Line, PreTokenWhitespace))) -->
-   [tok(keyword, "new", _, Line, PreTokenWhitespace)],
+   [tok(keyword, `new`, _, Line, PreTokenWhitespace)],
    js_new_expression(Expr).
 
 js_new_object_expression_args(js_new(Expr, Args , lex_info(Line, PreTokenWhitespace))) -->
-   [tok(keyword, "new", _, Line, PreTokenWhitespace)],
+   [tok(keyword, `new`, _, Line, PreTokenWhitespace)],
    js_new_expression(Expr),
    js_arguments(Args).
 
 js_arguments(js_arguments(Args, lex_info(Line1, PreTokenWhitespace1))) -->
-   [tok(punctuator, "(", _, Line1, PreTokenWhitespace1)],
+   [tok(punctuator, `(`, _, Line1, PreTokenWhitespace1)],
    js_argument_list(Args),
-   [tok(punctuator, ")", _, Line2, PreTokenWhitespace2)].
+   [tok(punctuator, `)`, _, Line2, PreTokenWhitespace2)].
 
 js_argument_list([Ast|Rest]) -->
    js_expression(Ast),
-   [tok(punctuator, ",", _, Line, PreTokenWhitespace)],
+   [tok(punctuator, `,`, _, Line, PreTokenWhitespace)],
    js_argument_list(Rest).
 js_argument_list([Ast]) -->
    js_expression(Ast).
@@ -240,23 +242,23 @@ js_call_expression(FinalResult) -->
    js_member_access_expression(Result, FinalResult).
 
 js_array_literal(js_array_literal(Exprs, lex_info(Line, PreTokenWhitespace))) -->
-   [tok(punctuator, "[", _, Line, PreTokenWhitespace)],
+   [tok(punctuator, `[`, _, Line, PreTokenWhitespace)],
    (([], {Exprs = []})
     ; (js_elision(Exprs))
     ; (js_element_list(Exprs))), 
-   [tok(punctuator, "]", _, Line2, PreTokenWhitespace2)].
+   [tok(punctuator, `]`, _, Line2, PreTokenWhitespace2)].
 
 js_elision([js_implicit_undefined|Rest]) -->
-   [tok(punctuator, ",", _, _, _)],
+   [tok(punctuator, `,`, _, _, _)],
    js_elision(Rest).
 js_elision([js_implicit_undefined]) -->
-   [tok(punctuator, ",", _, _, _)].
+   [tok(punctuator, `,`, _, _, _)].
 
 js_element_list(List) --> 
    js_elision(Elision),
    js_assignment_expression(Expr),
    ((
-      [tok(punctuator, ",", _, _, _)],
+      [tok(punctuator, `,`, _, _, _)],
       js_element_list(Rest))
       ;([] , { Rest = []})),
       { append(Elision, [Expr| Rest], List) }.
@@ -264,35 +266,35 @@ js_element_list(List) -->
 js_element_list([Expr| Rest]) --> 
    js_assignment_expression(Expr),
    ((
-      [tok(punctuator, ",", _, _, _)],
+      [tok(punctuator, `,`, _, _, _)],
       js_element_list(Rest))
       ;([] , { Rest = []})).
 
 js_element_list([Expr]) --> 
    js_assignment_expression(Expr),
-   ( [tok(punctuator, ",", _, _, _)]
+   ( [tok(punctuator, `,`, _, _, _)]
      ; []).
 
 js_assignment_expression(Expr) --> js_expression(Expr).
 
 js_object_literal(js_object(ObjectProperties, lex_info(Line, PreTokenWhitespace))) -->
-   [tok(punctuator, "{", _, Line, PreTokenWhitespace)],
+   [tok(punctuator, `{`, _, Line, PreTokenWhitespace)],
    js_property_and_name_list(ObjectProperties),
-   [tok(punctuator, "}", _, Line2, PreTokenWhitespace2 )].
+   [tok(punctuator, `}`, _, Line2, PreTokenWhitespace2 )].
 
 js_property_and_name_list([]) --> [].
 js_property_and_name_list(Elements) --> js_property_and_name_list_seq(Elements).
 
 js_property_and_name_list_seq([Prop|Rest]) -->
    js_property_assignment(Prop),
-   [tok(punctuator, ",", _, _, _)],
+   [tok(punctuator, `,`, _, _, _)],
    js_property_and_name_list_continuation(Rest).
 
 js_property_and_name_list_seq([Prop]) --> js_property_assignment(Prop).
 
 js_property_assignment(js_property_assignment(Name, Expression)) -->
     js_property_name(Name),
-    [tok(punctuator, ":", _, _, _)],
+    [tok(punctuator, `:`, _, _, _)],
     js_assignment_expression(Expression) .
 
 js_property_name(Name) -->
@@ -311,7 +313,7 @@ js_postfix_expression(FinalExpr) -->
 
 js_postfix_increment_expression(Expr, FinalExpr) -->
   (
-   [tok(punctuator, "++", _, _, Whitespace_elements)],
+   [tok(punctuator, `++`, _, _, Whitespace_elements)],
    { (\+ member(ws(_, true), Whitespace_elements), !),
      FinalExpr = js_postfix_expression(Expr, lex_info(1))  }) ;
    { FinalExpr = Expr }.
@@ -322,23 +324,23 @@ js_statement(Ast) -->
     ; js_if_statement(Ast).
 
 js_return_statement(js_return(lex_info(Line1,PreTokenWhitespace1 ))) -->
-   [tok(keyword, "return", _, Line1, PreTokenWhitespace1)],
-   [tok(punctuator, ";", _, Line2, PreTokenWhitespace2)].
+   [tok(keyword, `return`, _, Line1, PreTokenWhitespace1)],
+   [tok(punctuator, `;`, _, Line2, PreTokenWhitespace2)].
 
 js_return_statement(js_return(Expr, lex_info(Line1,PreTokenWhitespace1 ))) -->
-   [tok(keyword, "return", _, Line1, PreTokenWhitespace1)],
+   [tok(keyword, `return`, _, Line1, PreTokenWhitespace1)],
    js_expression(Expr),
-   [tok(punctuator, ";", _, Line2, PreTokenWhitespace2)].
+   [tok(punctuator, `;`, _, Line2, PreTokenWhitespace2)].
 
 js_if_statement(Ast) -->
-   [tok(keyword, "if", _, Line1, PreTokenWhitespace1)],
-   [tok(punctuator, "(", _, Line2, PreTokenWhitespace2)],
+   [tok(keyword, `if`, _, Line1, PreTokenWhitespace1)],
+   [tok(punctuator, `(`, _, Line2, PreTokenWhitespace2)],
 
    js_expression(Condition),
-   [tok(punctuator, ")", _, Line3, PreTokenWhitespace3)],   
+   [tok(punctuator, `)`, _, Line3, PreTokenWhitespace3)],   
    js_statement(ThenStat),
    ((
-      [tok(keyword, "else", _, Line4, PreTokenWhitespace4)],
+      [tok(keyword, `else`, _, Line4, PreTokenWhitespace4)],
        js_statement(ElseStat),
        { Ast = js_if(Condition, ThenStat, ElseStat, lex_info(Line1, PreTokenWhitespace1))})
    ; ( { Ast = js_if(Condition, ThenStat, lex_info(Line1, PreTokenWhitespace1  )) }) ).
