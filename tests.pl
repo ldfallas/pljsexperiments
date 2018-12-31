@@ -31,6 +31,14 @@ test_lex_regex1 :-
    js_lex_string(`/a/`,
 		 [ tok(regex, regex_literal(`a`,``), _,_,_)]).
 
+test_lex_regex_escape :-
+   js_lex_string(`/\b/`,
+		 [ tok(regex, regex_literal(`\b`,``), _,_,_)]).
+
+test_lex_regex_escape2 :-
+   js_lex_string(`/\\/[^\\/]*$/`,
+		 [ tok(regex, regex_literal(`\\/[^\\/]*$`,``), _,_,_)]).
+
 
 test_lex_two_char_op :-
    js_lex_string(`+=`,
@@ -58,6 +66,10 @@ test_lex_numeric_literal :-
 test_lex_string_literal :-
    js_lex_string(`"hola"`,
 		 [ tok(string, `"hola"`, _,_,_)]).
+
+test_lex_string_literal_escaped_char :-
+   js_lex_string(`"ho\\\"la"`,
+		 [ tok(string, `"ho\\\"la"`, _,_,_)]).
 
 test_lex_string_literal_single_quote :-
    js_lex_string(`'hola'`,
@@ -650,6 +662,7 @@ run_tests :-
         run_test(test_lex_id5),
         run_test(test_lex_numeric_literal),
         run_test(test_lex_string_literal),
+	run_test(test_lex_string_literal_escaped_char), 
         run_test(test_lex_string_literal_single_quote),
         run_test(test_lex_var_decl_with_init),
         run_test(test_lex_var_decl_with_init_with_comments),
@@ -663,6 +676,8 @@ run_tests :-
         run_test(test_lex_two_char_op),
         run_test(test_lex_two_char_op2),
         run_test(test_lex_regex1),
+        run_test(test_lex_regex_escape),
+        run_test(test_lex_regex_escape2),        
 
         run_test(test_parse_basic_literal),
         run_test(test_parse_basic_literal ),

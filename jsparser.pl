@@ -2,6 +2,15 @@
 
 :- use_module(jslexer).
 
+parse_js_file(FileName, Ast) :-
+   read_file_to_codes(FileName, Codes,[]),
+   js_lex_string(Codes, Toks), 
+   phrase(js_statement(Ast), Toks).
+
+lex_js_file(FileName, Toks) :-
+   read_file_to_codes(FileName, Codes,[]),
+   js_lex_string(Codes, Toks).
+
 parse_js_stat_string(CodeString, Ast) :- 
    string_to_list(CodeString, CodeStringLst),
    js_lex_string(CodeStringLst, Toks), 

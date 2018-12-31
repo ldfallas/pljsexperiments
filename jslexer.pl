@@ -23,8 +23,16 @@ string_literal_char(Char, QuotesChar) -->
         { \+ (Char = QuotesChar) }.
 
 string_literal_chars([Char|Chars], QuotesChar) -->
-   string_literal_char(Char, QuotesChar),
-   string_literal_chars(Chars, QuotesChar).
+
+   ({ [Char] = "\\" },
+    string_literal_char(Char, QuotesChar),
+    !,
+    [EscChar],
+    string_literal_chars(RestChars, QuotesChar),
+    !,
+    { Chars = [EscChar|RestChars] }) ;
+   (string_literal_char(Char, QuotesChar),
+    string_literal_chars(Chars, QuotesChar)).
 
 string_literal_chars([QuotesChar], QuotesChar),[QuotesChar] --> [QuotesChar].
 
@@ -221,7 +229,9 @@ js_regular_expression_non_terminator([C]) -->
    [C], !, { \+ code_type(C, newline)  }. 
 
 js_regular_expression_first_valid_char([C]) --> 
-   [C], !, { \+ code_type(C, newline), \+ member(C,"*\\/")  }. 
+   [C],  { \+ code_type(C, newline), \+ member(C,"*/\\")  }, !. 
+js_regular_expression_first_valid_char(First) --> 
+    js_regular_expression_backslash_sequence(First).
 
 js_regular_expression_common_char([C]) --> 
    [C], !, { \+ code_type(C, newline), \+ member(C,"\\/")  }. 
@@ -368,7 +378,7 @@ wss(Count, Lines) -->
           Lines is  NewLines + AddedLines, 
           Count is Subcount + 1, !
 	}.
-wss(0, 0) --> [].
+wss(0, 0) --> !, [].
 
 without_ws([ws(_,_)|Rest],Other) :-
 	without_ws(Rest,Other).
