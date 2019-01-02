@@ -603,6 +603,24 @@ test_return_statement2 :-
        `return;`,
         js_return(_)).
 
+test_var_statement :-
+   parse_js_stat_string(
+       `var v;`,
+        js_var_stat([js_var_decl(`v`,_)], _)).
+
+
+test_var_statement2 :-
+   parse_js_stat_string(
+       `var v, y;`,
+                 js_var_stat([js_var_decl(`v`,_),
+                              js_var_decl(`y`,_)], _)).
+
+test_var_statement3 :-
+   parse_js_stat_string(
+       `var v, y = 10;`,
+                 js_var_stat([js_var_decl(`v`,_),
+                              js_var_decl(`y`,js_literal(number,`10`,_),_)], _)).
+
 
 test_if_statement_no_else :-
    parse_js_stat_string(
@@ -737,6 +755,9 @@ run_tests :-
 	run_test(test_parse_conditional_chained),
         run_test(test_return_statement),
         run_test(test_return_statement2),
+        run_test(test_var_statement),
+        run_test(test_var_statement2),
+        run_test(test_var_statement3),
         run_test(test_if_statement_with_else),
         run_test(test_if_statement_no_else).
 
