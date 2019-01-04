@@ -145,8 +145,8 @@ call_operator_dcg(OperatorDcgBody, Ast, State0, StateN) :-
 
 
 js_primary_expression(Ast) -->
-   js_literal_expression(Ast) 
-   ; js_identifier_expression(Ast)
+    js_identifier_expression(Ast)
+   ; js_literal_expression(Ast) 
    ; js_par_expression(Ast) 
    ; js_array_literal(Ast)
    ; js_object_literal(Ast).
@@ -193,9 +193,25 @@ js_member_expression(Ast) -->
     js_simple_member_expression(LeftExprAst),
     js_member_access_expression(LeftExprAst,Ast). 
 
+call_member_dcg(Pred, Expr, Ast, State0, StateN) :- 
+   call(Pred, Expr, Ast, State0, StateN).
+
 js_member_access_expression(LeftExprAst, Ast) -->
-   (js_array_access_expression(LeftExprAst, Ast), !) ;
-    (js_dotted_access_expression(LeftExprAst, Ast), !) ;
+   (js_array_access_expression(LeftExprAst, js_member_access_expression, Ast), !) ;
+    (js_dotted_access_expression(LeftExprAst,  js_member_access_expression, Ast), !) ;
+    {Ast = LeftExprAst}.
+
+js_call_access_expression(Expr,  FinalResult) -->
+  js_arguments(Args),
+  {
+     Result = js_call(Expr, Args, null)
+  },js_call_member_access_expression(Result, FinalResult) .
+
+
+js_call_member_access_expression(LeftExprAst, Ast) -->
+   (js_array_access_expression(LeftExprAst,js_call_member_access_expression, Ast), !) ;
+    (js_dotted_access_expression(LeftExprAst,js_call_member_access_expression, Ast), !) ;
+    (js_call_access_expression(LeftExprAst, Ast), !) ;   
     {Ast = LeftExprAst}.
    
 
@@ -248,21 +264,23 @@ js_statement_sequence([First|Rest]) -->
     js_statement_sequence(Rest).
 js_statement_sequence(R) --> {R = []}.
 
-js_dotted_access_expression(Expr,  FinalResult) -->
+js_dotted_access_expression(Expr, ContPred, FinalResult) -->
   /*js_member_expression(Expr),*/
   [tok(punctuator, `.`, _, Line, PreTokenWhitespace)],
   js_identifier_expression(Identifier),
   {
      Result = js_dotted_access(Expr, Identifier,lex_info(Line,PreTokenWhitespace))
-  },js_member_access_expression(Result, FinalResult) .
+  }, %js_member_access_expression(Result, FinalResult) .
+  call_member_dcg(ContPred, Result, FinalResult).
 
-js_array_access_expression(MemberExpr, FinalResult /*js_array_access(MemberExpr, IndexExpr, lex_info(Line,PreTokenWhitespace))*/) -->
+js_array_access_expression(MemberExpr, ContPred, FinalResult /*js_array_access(MemberExpr, IndexExpr, lex_info(Line,PreTokenWhitespace))*/) -->
   /*js_member_expression(MemberExpr),*/
   [tok(punctuator, `[`, _, Line, PreTokenWhitespace)],
   js_expression(IndexExpr),
   [tok(punctuator, `]`, _, Line2, PreTokenWhitespace2)],
   { Result = js_array_access(MemberExpr, IndexExpr, lex_info(Line,PreTokenWhitespace)) },
-  (   js_member_access_expression(Result, FinalResult); { FinalResult = Result } ).
+  %  (   js_member_access_expression(Result, FinalResult); { FinalResult = Result } ).
+    (   call_member_dcg(ContPred, Result, FinalResult); { FinalResult = Result } ).
 
 js_new_expression(Ast) -->
    js_member_expression(Ast)
@@ -293,8 +311,8 @@ js_argument_list([]) --> [].
 js_call_expression(FinalResult) -->
    js_member_expression(Function),
    js_arguments(Arguments),
-   { Result = js_call_expression(Function, Arguments, null) },
-   js_member_access_expression(Result, FinalResult).
+   { Result = js_call(Function, Arguments, null) },
+   js_call_member_access_expression(Result, FinalResult).
 
 js_array_literal(js_array_literal(Exprs, lex_info(Line, PreTokenWhitespace))) -->
    [tok(punctuator, `[`, _, Line, PreTokenWhitespace)],
@@ -380,6 +398,8 @@ js_statement(Ast) -->
     ; js_var_statement(Ast)
     ; js_function_declaration(Ast)
     ; js_expr_statement(Ast)
+    ; js_while_statement(Ast)
+    ; js_for_statement(Ast)    
     ; js_statement_block(Ast).
 
 js_expr_statement(js_expr_stat(Call)) -->
@@ -437,6 +457,44 @@ js_if_statement(Ast) -->
        js_statement(ElseStat),
        { Ast = js_if(Condition, ThenStat, ElseStat, lex_info(Line1, PreTokenWhitespace1))})
    ; ( { Ast = js_if(Condition, ThenStat, lex_info(Line1, PreTokenWhitespace1  )) }) ).
+
+js_while_statement(Ast) -->
+    [tok(keyword, `while`, _, Line1, PreTokenWhitespace1)], !,
+    ((
+        [tok(punctuator, `(`, _, _, _)], 
+        js_expression(Condition),
+        [tok(punctuator, `)`, _, _, _)],   !,
+        js_statement(Body),
+        { Ast = js_while(Condition, Body, lex_info(Line1, PreTokenWhitespace1  )) } )
+    ; throw(malformedWhile(line(Line1)))).
+
+js_for_init(js_for_init(var, Vars, lex_info(Line1, PreTokenWhitespace))) -->
+    [tok(keyword,`var`, _, Line1, PreTokenWhitespace)],
+    (
+      (js_var_decl_sequence(Vars), !)
+      ; throw(unexpected_element(line(Line1)))).
+
+
+js_for_statement(Ast) -->
+    [tok(keyword, `for`, _, Line1, PreTokenWhitespace1)], !,
+    ((
+         [tok(punctuator, `(`, _, _, _)], 
+         js_for_init(Init),
+         [tok(punctuator, `;`, _, _, _)],
+         js_expression(Condition),
+         [tok(punctuator, `;`, _, _, _)],
+         js_expression(Increment),        
+         [tok(punctuator, `)`, _, _, _)],   !,
+        
+         js_statement(Body),
+         { Ast = js_for( 
+           Init,
+           js_for_condition(Condition),
+           js_for_increment(Increment),
+           Body,
+           lex_info(Line1, PreTokenWhitespace1  )) } )
+    ; throw(malformedWhile(line(Line1)))).    
+           
 
 
 test_pp(js_binary_operation(Op, Left, Right, _), Result) :- 

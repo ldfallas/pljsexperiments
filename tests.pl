@@ -345,7 +345,7 @@ test_parse_function_expression1 :-
 test_parse_call_expression1 :-
    parse_js_expression_string(
        `foo()`,
-        js_call_expression( 
+        js_call( 
             js_identifier(`foo`, _),
             js_arguments([],_),  _)).
 
@@ -353,7 +353,7 @@ test_parse_call_expression2 :-
    parse_js_expression_string(
        `foo().x`,
        js_dotted_access(
-        js_call_expression( 
+        js_call( 
             js_identifier(`foo`, _),
             js_arguments([], _),  _),
          js_identifier(`x`,_), _)).
@@ -362,23 +362,44 @@ test_parse_call_expression3 :-
    parse_js_expression_string(
        `foo()[x]`,
        js_array_access(
-        js_call_expression( 
+        js_call( 
             js_identifier(`foo`, _),
             js_arguments([],_),  _),
          js_identifier(`x`,_), _)).
 
 
+test_parse_call_expression4 :-
+   parse_js_expression_string(
+       `foo().goo()`,
+       js_call(        
+       js_dotted_access(
+        js_call( 
+            js_identifier(`foo`, _),
+            js_arguments([], _),  _),
+        js_identifier(`goo`,_), _),
+       js_arguments([], _),_)).
+
+test_parse_call_expression5 :-
+   parse_js_expression_string(
+       `foo()()`,
+       js_call(        
+        js_call( 
+            js_identifier(`foo`, _),
+            js_arguments([], _),  _),
+       js_arguments([], _),_)).
+
+
 test_parse_call_expression_with_args1 :-
    parse_js_expression_string(
        `foo(x)`,
-        js_call_expression( 
+        js_call( 
             js_identifier(`foo`, _),
             js_arguments([js_identifier(`x`, _)], _),  _)).
 
 test_parse_call_expression_with_args2 :-
    parse_js_expression_string(
        `foo(x, y)`,
-        js_call_expression( 
+        js_call( 
             js_identifier(`foo`, _),
             js_arguments(
             [ js_identifier(`x`, _),
@@ -388,11 +409,11 @@ test_parse_call_expression_with_args2 :-
 test_parse_call_expression_with_args3 :-
    parse_js_expression_string(
        `foo(x, goo())`,
-        js_call_expression( 
+        js_call( 
             js_identifier(`foo`, _),
             js_arguments(
               [js_identifier(`x`, _),
-               js_call_expression( 
+               js_call( 
                   js_identifier(`goo`, _),
                   js_arguments([],_),  _)
               ],_),  _)).
@@ -631,6 +652,35 @@ test_if_statement_no_else :-
             js_return(js_literal(number,`1`, _),_),
             _)).
 
+test_while_statement :-
+   parse_js_stat_string(
+       `while (x)
+           return 1;`,
+       js_while( 
+            js_identifier(`x`, _),
+            js_return(js_literal(number,`1`, _),_),
+            _)).
+
+test_for_statement :-
+   parse_js_stat_string(
+       `for (var x=1;x < 10;x++)
+           return 1;`,
+       js_for( 
+           js_for_init(var,[js_var_decl(`x`,js_literal(number,`1`,_),_)],_),
+           js_for_condition(
+               js_binary_operation(`<`,
+                                   js_identifier(`x`, _),
+                                   js_literal(number, _, _),
+                                   _)),
+           js_for_increment(
+               js_postfix_expression(
+                   js_identifier(`x`,_),
+                   _
+               )),
+           js_return(js_literal(number,`1`, _),_),
+            _)).
+
+
 test_if_statement_with_else :-
    parse_js_stat_string(
        `if (x)
@@ -731,6 +781,8 @@ run_tests :-
         run_test(test_parse_call_expression1),
         run_test(test_parse_call_expression2),
         run_test(test_parse_call_expression3),
+        run_test(test_parse_call_expression4),
+        run_test(test_parse_call_expression5),                
         run_test(test_parse_call_expression_with_args1),
         run_test(test_parse_call_expression_with_args2),
         run_test(test_parse_call_expression_with_args3),
@@ -759,7 +811,9 @@ run_tests :-
         run_test(test_var_statement2),
         run_test(test_var_statement3),
         run_test(test_if_statement_with_else),
-        run_test(test_if_statement_no_else).
+        run_test(test_if_statement_no_else),
+        run_test(test_for_statement),        
+        run_test(test_while_statement).
 
         /*,
 

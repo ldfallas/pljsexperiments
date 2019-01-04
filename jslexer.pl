@@ -321,6 +321,10 @@ is_jskeyword("new").
 is_jskeyword("delete").
 is_jskeyword("if").
 is_jskeyword("else").
+is_jskeyword("while").
+is_jskeyword("for").
+
+
 
 
 toks([Tok|[Sep|Rest]]) -->
@@ -363,14 +367,14 @@ whitespace(CurrentPosition,Line, Lex, ws(CurrentPosition, WithNewLine)), [NewPos
 	ws(AddedLines), 
         wss(Subcount,NewLines),
         { Count is Subcount + 1,
-	  NewPosition is CurrentPosition + Count,
+	  NewPosition is  CurrentPosition + Count,
           NewLine is Line + NewLines + AddedLines,
-          writef(AddedLines),
+%          writef(AddedLines),
           ((AddedLines + NewLines > 0, WithNewLine = true,!) ;
              WithNewLine = false) 
 	}.
-ws(1) --> [X],{ code_type(X, newline), ! }.
-ws(0) --> [X],{ code_type(X, space) }.
+
+ws(Ws) --> [X],{ ((code_type(X, newline), Ws = 1) ; (code_type(X, space), Ws = 0)), ! }.
 wss(Count, Lines) -->
 	ws(AddedLines),
 	wss(Subcount, NewLines),
