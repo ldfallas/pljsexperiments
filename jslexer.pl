@@ -278,6 +278,7 @@ two_char_punctuator(">=").
 two_char_punctuator("||").
 two_char_punctuator("&&").
 two_char_punctuator("++").
+two_char_punctuator("--").
 two_char_punctuator("<<").
 two_char_punctuator(">>").
 two_char_punctuator("==").
@@ -319,12 +320,16 @@ is_jskeyword("true").
 is_jskeyword("false").
 is_jskeyword("new").
 is_jskeyword("delete").
+is_jskeyword("typeof").
+is_jskeyword("instanceof"). 
 is_jskeyword("if").
 is_jskeyword("else").
 is_jskeyword("while").
 is_jskeyword("for").
-
-
+is_jskeyword("break").
+is_jskeyword("switch").
+is_jskeyword("case").
+is_jskeyword("default").
 
 
 toks([Tok|[Sep|Rest]]) -->

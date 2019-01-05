@@ -661,6 +661,30 @@ test_while_statement :-
             js_return(js_literal(number,`1`, _),_),
             _)).
 
+test_switch_statement :-
+   parse_js_stat_string(
+       `switch(x) {
+           case 1:
+              return 1;
+              break;
+           default:
+              return 2;
+        }`,
+       js_switch( 
+           js_identifier(`x`, _),
+           [
+               js_case(js_literal(number,`1`, _),[
+                           js_return(js_literal(number,`1`, _),_),
+                           js_break(_)
+                       ],_),
+               js_default(
+                        [   js_return(js_literal(number,`2`, _),_) ]
+                        , _  
+                       )
+           ],
+       _) ) .
+
+
 test_for_statement :-
    parse_js_stat_string(
        `for (var x=1;x < 10;x++)
@@ -812,7 +836,8 @@ run_tests :-
         run_test(test_var_statement3),
         run_test(test_if_statement_with_else),
         run_test(test_if_statement_no_else),
-        run_test(test_for_statement),        
+        run_test(test_for_statement),
+        run_test(test_switch_statement),
         run_test(test_while_statement).
 
         /*,

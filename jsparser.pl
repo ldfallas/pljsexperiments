@@ -11,6 +11,10 @@ lex_js_file(FileName, Toks) :-
    read_file_to_codes(FileName, Codes,[]),
    js_lex_string(Codes, Toks).
 
+lex_js_string(Codestring, Toks) :-
+   string_to_list(Codestring, Codes),
+   js_lex_string(Codes, Toks).
+
 parse_js_stat_string(CodeString, Ast) :- 
    string_to_list(CodeString, CodeStringLst),
    js_lex_string(CodeStringLst, Toks), 
@@ -42,6 +46,22 @@ js_unary_expression(Ast) -->
    ([tok(keyword, `delete`, _, Line, PreTokenWhitespace)],
     js_unary_expression(InnerAst),
     { Ast = js_delete_expression(InnerAst, lex_info(Line, PreTokenWhitespace))  }
+   ) ;
+   ([tok(keyword, `typeof`, _, Line, PreTokenWhitespace)],
+    js_unary_expression(InnerAst),
+    { Ast = js_typeof(InnerAst, lex_info(Line, PreTokenWhitespace))  }
+   ) ;   
+   ([tok(punctuator, `!`, _, Line, PreTokenWhitespace)],
+    js_unary_expression(InnerAst),
+    { Ast = js_not(InnerAst, lex_info(Line, PreTokenWhitespace))  }
+   ) ;   
+   ([tok(punctuator, `-`, _, Line, PreTokenWhitespace)],
+    js_unary_expression(InnerAst),
+    { Ast = js_negate(InnerAst, lex_info(Line, PreTokenWhitespace))  }
+   ) ;
+   ([tok(punctuator, `+`, _, Line, PreTokenWhitespace)],
+    js_unary_expression(InnerAst),
+    { Ast = js_positive(InnerAst, lex_info(Line, PreTokenWhitespace))  }
    ) ;
     js_postfix_expression(Ast).
 
@@ -187,7 +207,7 @@ js_identifier_expression(
 js_par_expression(js_par(Expr, lex_info(Line, PreTokenWhitespace1))) -->
    [tok(punctuator, `(`, _, Line, PreTokenWhitespace1)],
    js_expression(Expr),
-   [tok(punctuator, `)`, _, Line, PreTokenWhitespace2)].
+   [tok(punctuator, `)`, _, _,_)].
 
 js_member_expression(Ast) -->
     js_simple_member_expression(LeftExprAst),
@@ -386,9 +406,10 @@ js_postfix_expression(FinalExpr) -->
 
 js_postfix_increment_expression(Expr, FinalExpr) -->
   (
-   [tok(punctuator, `++`, _, _, Whitespace_elements)],
-   { (\+ member(ws(_, true), Whitespace_elements), !),
-     FinalExpr = js_postfix_expression(Expr, lex_info(1))  }) ;
+  [tok(punctuator, Op, _, _, Whitespace_elements)],
+  {  (Op = `++`; Op = `--`),!,
+     (\+ member(ws(_, true), Whitespace_elements), !),
+     FinalExpr = js_postfix_expression(Expr,Op, lex_info(1))  } );
    { FinalExpr = Expr }.
 
 
@@ -400,7 +421,12 @@ js_statement(Ast) -->
     ; js_expr_statement(Ast)
     ; js_while_statement(Ast)
     ; js_for_statement(Ast)    
-    ; js_statement_block(Ast).
+    ; js_statement_block(Ast)
+    ; js_break_statement(Ast)
+    ; js_switch_statement(Ast)
+    ; js_empty_statement(Ast).
+
+
 
 js_expr_statement(js_expr_stat(Call)) -->
     js_call_expression(Call),
@@ -409,6 +435,13 @@ js_expr_statement(js_expr_stat(Call)) -->
 js_expr_statement(js_expr_stat(Asg)) -->
     js_assignment_expression(Asg),
     [tok(punctuator, `;`, _, _, _)].
+
+js_empty_statement(js_empty_stat(lex_info(Line, PreTokenWhitespace ))) -->
+   [tok(punctuator, `;`, _, Line, PreTokenWhitespace)].
+
+js_break_statement(js_break(lex_info(Line1,PreTokenWhitespace1 ))) -->
+   [tok(keyword, `break`, _, Line1, PreTokenWhitespace1)],
+   [tok(punctuator, `;`, _, Line2, PreTokenWhitespace2)].
 
 
 js_return_statement(js_return(lex_info(Line1,PreTokenWhitespace1 ))) -->
@@ -468,11 +501,53 @@ js_while_statement(Ast) -->
         { Ast = js_while(Condition, Body, lex_info(Line1, PreTokenWhitespace1  )) } )
     ; throw(malformedWhile(line(Line1)))).
 
+
+js_case(Ast) -->
+    [tok(keyword, `case`, _, Line1, PreTokenWhitespace1)], !,
+    ((
+        js_expression(LabelValue),
+        [tok(punctuator, `:`, _, _, _)],   !,
+        js_statement_sequence(Sequence),
+        { Ast = js_case(LabelValue, Sequence, lex_info(Line1, PreTokenWhitespace1  )) } )
+    ; throw(malformedCase(line(Line1)))).
+
+js_case(Ast) -->
+    [tok(keyword, `default`, _, Line1, PreTokenWhitespace1)], !,
+    ((
+        [tok(punctuator, `:`, _, _, _)],   !,
+        js_statement_sequence(Sequence),
+        { Ast = js_default(Sequence, lex_info(Line1, PreTokenWhitespace1  )) } )
+    ; throw(malformedCase(line(Line1)))).
+
+js_case_sequence([First|Rest]) -->
+    js_case(First),
+    js_case_sequence(Rest).
+
+js_case_sequence(R) --> {R = []}.
+
+js_switch_statement(Ast) -->
+    [tok(keyword, `switch`, _, Line1, PreTokenWhitespace1)], !,
+    ((
+        [tok(punctuator, `(`, _, _, _)], 
+        js_expression(Value),
+        [tok(punctuator, `)`, _, _, _)],   !,
+        [tok(punctuator, `{`, _, _, _)], 
+        js_case_sequence(Sequence),
+        [tok(punctuator, `}`, _, _, _)], 
+
+        { Ast = js_switch(Value, Sequence, lex_info(Line1, PreTokenWhitespace1  )) } )
+    ; throw(malformedSwitch(line(Line1)))).
+
+
 js_for_init(js_for_init(var, Vars, lex_info(Line1, PreTokenWhitespace))) -->
     [tok(keyword,`var`, _, Line1, PreTokenWhitespace)],
     (
       (js_var_decl_sequence(Vars), !)
       ; throw(unexpected_element(line(Line1)))).
+
+js_for_init(js_for_init( Vars, lex_info(Line1, PreTokenWhitespace))) -->
+      js_var_decl_sequence(Vars).
+
 
 
 js_for_statement(Ast) -->
@@ -493,7 +568,7 @@ js_for_statement(Ast) -->
            js_for_increment(Increment),
            Body,
            lex_info(Line1, PreTokenWhitespace1  )) } )
-    ; throw(malformedWhile(line(Line1)))).    
+    ; throw(malformedFor(line(Line1)))).    
            
 
 
