@@ -424,6 +424,7 @@ js_statement(Ast) -->
     ; js_statement_block(Ast)
     ; js_break_statement(Ast)
     ; js_switch_statement(Ast)
+    ; js_try(Ast)
     ; js_empty_statement(Ast).
 
 
@@ -537,6 +538,46 @@ js_switch_statement(Ast) -->
 
         { Ast = js_switch(Value, Sequence, lex_info(Line1, PreTokenWhitespace1  )) } )
     ; throw(malformedSwitch(line(Line1)))).
+
+js_catch(Catch) -->
+    [tok(keyword, `catch`, _, Line1, PreTokenWhitespace1)], !,
+    ( (
+         [tok(punctuator, `(`, _, _, _)],
+         [tok(id, IdName, _, _, _)],
+         [tok(punctuator, `)`, _, _, _)],!,
+         js_statement_block(Block),
+         { Catch = js_catch(IdName, Block,
+                           lex_info(Line1, PreTokenWhitespace1  )) }
+        )
+    ; throw(unexpected_element(line(Line1)))).
+
+js_finally(Finally) -->
+    [tok(keyword, `finally`, _, Line1, PreTokenWhitespace1)], !,
+    ( (
+         js_statement_block(Block),!,
+         { Finally = js_finally(Block,
+                              lex_info(Line1, PreTokenWhitespace1  ) ) }
+        )
+      ; throw(unexpected_element(line(Line1)))).
+
+
+js_try(Ast) -->
+    [tok(keyword, `try`, _, Line1, PreTokenWhitespace1)], !,
+    ((
+        js_statement_block(Block),
+        ((js_catch(CatchSection), !,
+          { CatchBlock = js_catch_section(CatchSection) } )
+          ; { CatchBlock = js_catch_section()}),
+        ((js_finally(FinallySection), !,
+          { FinallyBlock = js_finally_section(FinallySection) } )
+         ; { FinallyBlock = js_finally_section()}),
+        { Ast = js_try(
+                    Block,
+                    CatchBlock,
+                    FinallyBlock,
+                    lex_info(Line1, PreTokenWhitespace1  )) } )
+    ; throw(malformedTry(line(Line1)))).
+
 
 
 js_for_init(js_for_init(var, Vars, lex_info(Line1, PreTokenWhitespace))) -->

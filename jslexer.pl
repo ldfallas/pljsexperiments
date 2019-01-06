@@ -329,6 +329,9 @@ is_jskeyword("for").
 is_jskeyword("break").
 is_jskeyword("switch").
 is_jskeyword("case").
+is_jskeyword("catch").
+is_jskeyword("try").
+is_jskeyword("finally").
 is_jskeyword("default").
 
 
@@ -343,7 +346,7 @@ toks([]) --> [].
 
 toks2([Tok|Rest], PreviousToken) -->
 	lexical_whitespace,
-	tok(Tok, PreviousToken),
+	tok(Tok, PreviousToken),!,
 	toks2(Rest, Tok).
 toks2([], _),[X,Y,Z] --> lexical_whitespace,[X,Y,Z], \+ [_].
 toks2([], _) -->[X,Line,Z], [A,B,C], {  throw(unexpectedInput(line(Line), [A,B,C])) }.

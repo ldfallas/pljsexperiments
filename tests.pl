@@ -422,7 +422,8 @@ test_parse_postfix_expression1 :-
    parse_js_expression_string(
        `x++`,
         js_postfix_expression( 
-            js_identifier(`x`, _)
+            js_identifier(`x`, _),
+            `++`
             ,  _)).
 
 test_parse_delete_expression :-
@@ -619,6 +620,35 @@ test_return_statement :-
             js_identifier(`x`, _),
             _)).
 
+test_simple_block :-
+    parse_js_stat_string(
+        `{
+            foo();
+            goo();
+            moo();
+        }`,
+        js_block([
+         js_expr_stat(js_call(js_identifier(`foo`,_), _ ,_) ),
+         js_expr_stat(js_call(js_identifier(`goo`,_), _ ,_) ),
+         js_expr_stat(js_call(js_identifier(`moo`,_), _ ,_) )
+                    ],
+                 _)).
+
+test_basic_automatic_semicolon_insertion :-
+    parse_js_stat_string(
+        `{
+            foo()
+            goo()
+            moo()
+        }`,
+        js_block([
+         js_expr_stat(js_call(js_identifier(`foo`,_), _ ,_) ),
+         js_expr_stat(js_call(js_identifier(`goo`,_), _ ,_) ),
+         js_expr_stat(js_call(js_identifier(`moo`,_), _ ,_) )
+                    ],
+                 _)).
+
+
 test_return_statement2 :-
    parse_js_stat_string(
        `return;`,
@@ -699,6 +729,7 @@ test_for_statement :-
            js_for_increment(
                js_postfix_expression(
                    js_identifier(`x`,_),
+                   `++`,
                    _
                )),
            js_return(js_literal(number,`1`, _),_),
@@ -715,6 +746,35 @@ test_if_statement_with_else :-
             js_identifier(`x`, _),
             js_return(js_literal(number,`1`, _),_),
             js_return(js_literal(number,`2`, _),_),_)).
+
+test_try_catch_stat :-
+   parse_js_stat_string(
+       `try {
+           } catch (ex) {  }`,
+       js_try( 
+            js_block([],_),
+            js_catch_section(js_catch(`ex`,js_block([],_),_)),
+            js_finally_section(),_)).
+
+test_try_finally_stat :-
+   parse_js_stat_string(
+       `try {
+           } finally  {  }`,
+       js_try( 
+            js_block([],_),
+            js_catch_section(),
+            js_finally_section(js_finally(js_block([], _),_)),_)).
+
+
+test_try_catch_finally_stat :-
+   parse_js_stat_string(
+       `try {
+       } catch(ex) {}
+       finally  {  }`,
+       js_try( 
+            js_block([],_),
+            js_catch_section(js_catch(`ex`,js_block([],_),_)),
+            js_finally_section(js_finally(js_block([], _), _)),_)).
 
 
 run_test(Test) :-
@@ -838,7 +898,12 @@ run_tests :-
         run_test(test_if_statement_no_else),
         run_test(test_for_statement),
         run_test(test_switch_statement),
-        run_test(test_while_statement).
+        run_test(test_while_statement),
+        run_test(test_try_catch_finally_stat),
+        run_test(test_try_finally_stat),
+        run_test(test_try_catch_stat),
+        run_test(test_basic_automatic_semicolon_insertion),
+        run_test(test_simple_block).
 
         /*,
 
