@@ -274,9 +274,12 @@ js_formal_parameter_list(Result) --> {Result = []}.
 
 
 js_statement_block(js_block(Stats, lex_info(Line,PreTokenWhitespace ))) -->
-    [tok(punctuator, `{`, _, Line, PreTokenWhitespace)],
-    js_statement_sequence(Stats),  
-    [tok(punctuator, `}`, _, Line2, PreTokenWhitespace2)].
+    [tok(punctuator, `{`, _, Line, PreTokenWhitespace)],!,
+     js_statement_sequence(Stats),
+     (
+         [tok(punctuator, `}`, _, Line2, PreTokenWhitespace2)]
+     ; ( [tok(_, _, _, CurrLine, _)],
+         throw(expectingValidStatement(line(CurrLine))))).
 
 js_statement_sequence([First|Rest]) -->
     js_statement(First),
@@ -381,7 +384,7 @@ js_property_and_name_list(Elements) --> js_property_and_name_list_seq(Elements).
 js_property_and_name_list_seq([Prop|Rest]) -->
    js_property_assignment(Prop),
    [tok(punctuator, `,`, _, _, _)],
-   js_property_and_name_list_continuation(Rest).
+   js_property_and_name_list_seq(Rest).
 
 js_property_and_name_list_seq([Prop]) --> js_property_assignment(Prop).
 
@@ -394,7 +397,10 @@ js_property_name(Name) -->
    [tok(id, Name, _, Line, PreTokenWhitespace)] .
 
 js_property_name(Name) -->
-   [tok(string, Name, _, Line, PreTokenWhitespace)] .
+    [tok(string, Name, _, Line, PreTokenWhitespace)] .
+js_property_name(Name) -->
+   [tok(number, Name, _, Line, PreTokenWhitespace)] .
+
 
 js_left_hand_side_expression(Expr) --> js_call_expression(Expr).
 js_left_hand_side_expression(Expr) --> js_new_expression(Expr).
@@ -425,6 +431,7 @@ js_statement(Ast) -->
     ; js_break_statement(Ast)
     ; js_switch_statement(Ast)
     ; js_try(Ast)
+    ; js_throw_statement(Ast)
     ; js_empty_statement(Ast).
 
 
@@ -453,6 +460,12 @@ js_return_statement(js_return(Expr, lex_info(Line1,PreTokenWhitespace1 ))) -->
    [tok(keyword, `return`, _, Line1, PreTokenWhitespace1)],
    js_expression(Expr),
    [tok(punctuator, `;`, _, Line2, PreTokenWhitespace2)].
+
+js_throw_statement(js_throw(Expr, lex_info(Line1,PreTokenWhitespace1 ))) -->
+   [tok(keyword, `throw`, _, Line1, PreTokenWhitespace1)],
+   js_expression(Expr),
+   [tok(punctuator, `;`, _, Line2, PreTokenWhitespace2)].
+
 
 js_var_statement(js_var_stat(Vars, lex_info(Line1, PreTokenWhitespace))) -->
     [tok(keyword,`var`, _, Line1, PreTokenWhitespace)],

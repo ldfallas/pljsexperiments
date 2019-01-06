@@ -331,6 +331,7 @@ is_jskeyword("switch").
 is_jskeyword("case").
 is_jskeyword("catch").
 is_jskeyword("try").
+is_jskeyword("throw").
 is_jskeyword("finally").
 is_jskeyword("default").
 
