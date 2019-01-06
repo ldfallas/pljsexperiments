@@ -691,6 +691,16 @@ test_while_statement :-
             js_return(js_literal(number,`1`, _),_),
             _)).
 
+test_do_while_statement :-
+   parse_js_stat_string(
+       `do 
+           return 1; while (x);`,
+       js_do_while( 
+           js_return(js_literal(number,`1`, _), _),
+           js_identifier(`x`, _),
+            _)).
+
+
 test_switch_statement :-
    parse_js_stat_string(
        `switch(x) {
@@ -899,6 +909,7 @@ run_tests :-
         run_test(test_for_statement),
         run_test(test_switch_statement),
         run_test(test_while_statement),
+        run_test(test_do_while_statement),
         run_test(test_try_catch_finally_stat),
         run_test(test_try_finally_stat),
         run_test(test_try_catch_stat),

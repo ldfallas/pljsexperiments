@@ -298,6 +298,7 @@ is_js_punctuator(",").
 is_js_punctuator(".").
 is_js_punctuator("+").
 is_js_punctuator("-").
+is_js_punctuator("~").
 is_js_punctuator("*").
 is_js_punctuator("/").
 is_js_punctuator("%").
@@ -325,6 +326,7 @@ is_jskeyword("instanceof").
 is_jskeyword("if").
 is_jskeyword("else").
 is_jskeyword("while").
+is_jskeyword("do").
 is_jskeyword("for").
 is_jskeyword("break").
 is_jskeyword("switch").

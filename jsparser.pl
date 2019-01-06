@@ -426,6 +426,7 @@ js_statement(Ast) -->
     ; js_function_declaration(Ast)
     ; js_expr_statement(Ast)
     ; js_while_statement(Ast)
+    ; js_do_while_statement(Ast)
     ; js_for_statement(Ast)    
     ; js_statement_block(Ast)
     ; js_break_statement(Ast)
@@ -515,6 +516,17 @@ js_while_statement(Ast) -->
         { Ast = js_while(Condition, Body, lex_info(Line1, PreTokenWhitespace1  )) } )
     ; throw(malformedWhile(line(Line1)))).
 
+js_do_while_statement(Ast) -->
+    [tok(keyword, `do`, _, Line1, PreTokenWhitespace1)], !,
+    ((
+        js_statement(Body),
+        [tok(keyword, `while`, _, _, _)],
+        [tok(punctuator, `(`, _, _, _)], 
+        js_expression(Condition),
+        [tok(punctuator, `)`, _, _, _)],
+        [tok(punctuator, `;`, _, _, _)],!,
+        { Ast = js_do_while( Body, Condition, lex_info(Line1, PreTokenWhitespace1  )) } )
+    ; throw(malformedDoWhile(line(Line1)))).
 
 js_case(Ast) -->
     [tok(keyword, `case`, _, Line1, PreTokenWhitespace1)], !,
