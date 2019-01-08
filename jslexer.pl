@@ -37,6 +37,22 @@ string_literal_chars([Char|Chars], QuotesChar) -->
 string_literal_chars([QuotesChar], QuotesChar),[QuotesChar] --> [QuotesChar].
 
 
+number(tok(number, Number, CurrentPosition, Line, PreTokenWhitespace)), 
+       [NewPosition, Line, []] -->
+       [CurrentPosition, Line, PreTokenWhitespace],
+       "0", 
+       ("x";"X"), !,
+	hex_digit(Digit),
+	hex_digits(HexDigits),
+	{
+           append(`0x`,[Digit|HexDigits], Number),
+	   length(HexDigits, NCount),
+	   Count is NCount + 3,
+           
+	   NewPosition is Count + CurrentPosition
+	}.
+
+
 number(tok(number, [Digit|Digits], CurrentPosition, Line, PreTokenWhitespace)), 
        [NewPosition, Line, []] -->
 	[CurrentPosition, Line, PreTokenWhitespace],
@@ -51,6 +67,8 @@ number(tok(number, [Digit|Digits], CurrentPosition, Line, PreTokenWhitespace)),
 	   NewPosition is Count + CurrentPosition
 	}.
 
+
+
 digit(Digit) --> [Digit],
 	{ code_type(Digit, digit) }.
 
@@ -58,6 +76,19 @@ digits([Digit|Digits]) -->
 	digit(Digit),
 	digits(Digits).
 digits([]) --> [].
+
+
+hex_digit(Digit) --> [Digit],
+	             {
+                       code_type(Digit, digit);
+                       member(Digit,`abcdefABCDEF`)
+                     }.
+
+hex_digits([Digit|Digits]) -->
+	hex_digit(Digit),
+	hex_digits(Digits).
+hex_digits([]) --> [].
+
 
 /*
 
@@ -146,6 +177,13 @@ tok(Tok, _) -->
 	        Tok = Word, !
 	    )
 	}.
+
+tok(Number, _) -->
+	number(Number).
+
+tok(String, _) -->
+	string_tok(String).
+
 
 /*tok(tok(punctuator, Value, CurrentPosition, Line, PreTokenWs), PreviousToken), */
 tok(ResultTok, PreviousToken), 
@@ -236,12 +274,6 @@ js_regular_expression_first_valid_char(First) -->
 js_regular_expression_common_char([C]) --> 
    [C], !, { \+ code_type(C, newline), \+ member(C,"\\/")  }. 
 
-tok(Number, _) -->
-	number(Number).
-
-tok(String, _) -->
-	string_tok(String).
-
 js_punctuator(Value, 3) -->
       [Value1, Value2, Value3], 
       { 
@@ -270,6 +302,7 @@ three_char_punctuator(">>=").
 three_char_punctuator("<<=").
 
 two_char_punctuator("+=").
+two_char_punctuator("|=").
 two_char_punctuator("-=").
 two_char_punctuator("/=").
 two_char_punctuator("*=").

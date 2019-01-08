@@ -54,7 +54,12 @@ js_unary_expression(Ast) -->
    ([tok(punctuator, `!`, _, Line, PreTokenWhitespace)],
     js_unary_expression(InnerAst),
     { Ast = js_not(InnerAst, lex_info(Line, PreTokenWhitespace))  }
+   ) ;
+   ([tok(punctuator, `~`, _, Line, PreTokenWhitespace)],
+    js_unary_expression(InnerAst),
+    { Ast = js_bit_not(InnerAst, lex_info(Line, PreTokenWhitespace))  }
    ) ;   
+
    ([tok(punctuator, `-`, _, Line, PreTokenWhitespace)],
     js_unary_expression(InnerAst),
     { Ast = js_negate(InnerAst, lex_info(Line, PreTokenWhitespace))  }
@@ -424,7 +429,6 @@ js_statement(Ast) -->
     ; js_if_statement(Ast)
     ; js_var_statement(Ast)
     ; js_function_declaration(Ast)
-    ; js_expr_statement(Ast)
     ; js_while_statement(Ast)
     ; js_do_while_statement(Ast)
     ; js_for_statement(Ast)    
@@ -433,7 +437,8 @@ js_statement(Ast) -->
     ; js_switch_statement(Ast)
     ; js_try(Ast)
     ; js_throw_statement(Ast)
-    ; js_empty_statement(Ast).
+    ; js_empty_statement(Ast)
+    ; js_expr_statement(Ast).
 
 
 
