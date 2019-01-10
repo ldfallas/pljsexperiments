@@ -344,31 +344,31 @@ is_js_punctuator("|").
 is_js_punctuator("^").
 
 js_keyword(tok(id, Text, Position, Line, Lex), Token) :-
-	is_jskeyword(Text),
-	Token = tok(keyword, Text, Position, Line,Lex).
+	is_jskeyword(Text, Keyword),
+	Token = tok(keyword, Keyword, Position, Line,Lex).
 
-is_jskeyword("var").
-is_jskeyword("function").
-is_jskeyword("return").
-is_jskeyword("true").
-is_jskeyword("false").
-is_jskeyword("new").
-is_jskeyword("delete").
-is_jskeyword("typeof").
-is_jskeyword("instanceof"). 
-is_jskeyword("if").
-is_jskeyword("else").
-is_jskeyword("while").
-is_jskeyword("do").
-is_jskeyword("for").
-is_jskeyword("break").
-is_jskeyword("switch").
-is_jskeyword("case").
-is_jskeyword("catch").
-is_jskeyword("try").
-is_jskeyword("throw").
-is_jskeyword("finally").
-is_jskeyword("default").
+is_jskeyword("var", var_kw).
+is_jskeyword("function", function_kw).
+is_jskeyword("return", return_kw).
+is_jskeyword("true", true_kw).
+is_jskeyword("false", false_kw).
+is_jskeyword("new", new_kw).
+is_jskeyword("delete", delete_kw).
+is_jskeyword("typeof", typeof_kw).
+is_jskeyword("instanceof", instanceof_kw). 
+is_jskeyword("if", if_kw).
+is_jskeyword("else", else_kw).
+is_jskeyword("while", while_kw).
+is_jskeyword("do", do_kw).
+is_jskeyword("for", for_kw).
+is_jskeyword("break", break_kw).
+is_jskeyword("switch", switch_kw).
+is_jskeyword("case", case_kw).
+is_jskeyword("catch", catch_kw).
+is_jskeyword("try", try_kw).
+is_jskeyword("throw", throw_kw).
+is_jskeyword("finally", finally_kw).
+is_jskeyword("default", default_kw).
 
 
 toks([Tok|[Sep|Rest]]) -->

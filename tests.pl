@@ -3,7 +3,7 @@
 
 test_lex_var_decl :-
    js_lex_string(`var x;`,
-		 [ tok(keyword, `var`, _,_,_),
+		 [ tok(keyword, var_kw, _,_,_),
 		   tok(id, `x`, _,_,_),
 		   tok(punctuator, `;`,_,_,_) ]).
 
@@ -93,7 +93,7 @@ test_lex_operator_literal :-
 test_lex_var_decl_with_init_with_comments :-
    js_lex_string(`var//uno
 x = 20;`,
-		 [ tok(keyword, `var`, _,_,_),
+		 [ tok(keyword, var_kw, _,_,_),
 		   tok(id, `x`, _,_, [line_comment(`uno`,_)]),
 		   tok(punctuator, `=`,_,_,_),
 		   tok(number,`20`,_,_,_),
@@ -101,7 +101,7 @@ x = 20;`,
 
 test_lex_var_decl_with_init :-
    js_lex_string(`var x = 20;`,
-		 [ tok(keyword, `var`, _,_,_),
+		 [ tok(keyword, var_kw, _,_,_),
 		   tok(id, `x`, _,_,_),
 		   tok(punctuator, `=`,_,_,_),
 		   tok(number,`20`,_,_,_),
@@ -120,13 +120,13 @@ test_lex_simple_obj_literal :-
 
       tok(string, `"on_keyup"`,_,_,_),
       tok(punctuator, `:`, _,_,_),
-      tok(keyword, `function`,_,_,_),
+      tok(keyword, function_kw,_,_,_),
       tok(punctuator, `(`, _,_,_),
       tok(id, `event`,_,_,_),
       tok(punctuator, `)`, _,_,_),
       tok(punctuator, `{`, _,_,_),
-      tok(keyword, `return`,_,_,_),
-      tok(keyword, `true`,_,_,_),
+      tok(keyword, return_kw,_,_,_),
+      tok(keyword, true_kw,_,_,_),
       tok(punctuator, `}`, _,_,_),
 
       tok(punctuator, `}`, _,_,_)
@@ -145,13 +145,13 @@ test_lex_simple_block_comment :-
 
       tok(string, `"on_keyup"`,_,_,_),
       tok(punctuator, `:`, _,_,_),
-      tok(keyword, `function`,_,_,_),
+      tok(keyword, function_kw,_,_,_),
       tok(punctuator, `(`, _,_,_),
       tok(id, `event`,_,_,_),
       tok(punctuator, `)`, _,_,_),
       tok(punctuator, `{`, _,_,_),
-      tok(keyword, `return`,_,_,_),
-      tok(keyword, `true`,_,_,_),
+      tok(keyword, return_kw,_,_,_),
+      tok(keyword, true_kw,_,_,_),
       tok(punctuator, `}`, _,_,_),
 
       tok(punctuator, `}`, _,_,_)
