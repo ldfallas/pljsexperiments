@@ -274,74 +274,77 @@ js_regular_expression_first_valid_char(First) -->
 js_regular_expression_common_char([C]) --> 
    [C], !, { \+ code_type(C, newline), \+ member(C,"\\/")  }. 
 
-js_punctuator(Value, 3) -->
+js_punctuator(OpId, 3) -->
       [Value1, Value2, Value3], 
       { 
         Value = [Value1, Value2, Value3], 
-        three_char_punctuator(Value)
+        three_char_punctuator(Value, OpId)
       }.
 
 
-js_punctuator(Value, 2) -->
+js_punctuator(OpId, 2) -->
       [Value1, Value2], 
       { 
         Value = [Value1, Value2], 
-        two_char_punctuator(Value)
+        two_char_punctuator(Value, OpId)
       }.
 
-js_punctuator([Value], 1) -->
+js_punctuator(OpId, 1) -->
 	[Value],
 	{
-	    is_js_punctuator([Value])
+	    is_js_punctuator([Value], OpId)
 	}.
 
-three_char_punctuator("===").
-three_char_punctuator("!==").
-three_char_punctuator(">>>").
-three_char_punctuator(">>=").
-three_char_punctuator("<<=").
+three_char_punctuator("===", exact_equal_op).
+three_char_punctuator("!==", not_exact_equal_op).
+three_char_punctuator(">>>", shift_right_1_op).
+three_char_punctuator(">>=", shift_right_eql_op).
+three_char_punctuator("<<=", shift_left_eql_op).
 
-two_char_punctuator("+=").
-two_char_punctuator("|=").
-two_char_punctuator("-=").
-two_char_punctuator("/=").
-two_char_punctuator("*=").
-two_char_punctuator("<=").
-two_char_punctuator(">=").
-two_char_punctuator("||").
-two_char_punctuator("&&").
-two_char_punctuator("++").
-two_char_punctuator("--").
-two_char_punctuator("<<").
-two_char_punctuator(">>").
-two_char_punctuator("==").
-two_char_punctuator("!=").
+two_char_punctuator("+=", plus_eq_op).
+two_char_punctuator("^=", bit_xor_eq_op).
+two_char_punctuator("|=", bit_or_eq_op).
+two_char_punctuator("&=", bit_and_eq_op).
+two_char_punctuator("-=", minus_eq_op).
+two_char_punctuator("/=", div_eq_op).
+two_char_punctuator("*=", times_eq_op).
+two_char_punctuator("%=", mod_eq_op).
+two_char_punctuator("<=", lt_eq_op).
+two_char_punctuator(">=", gt_eq_op).
+two_char_punctuator("||", or_op).
+two_char_punctuator("&&", and_op).
+two_char_punctuator("++", plusp_op).
+two_char_punctuator("--", minusm_op).
+two_char_punctuator("<<", shift_left_op).
+two_char_punctuator(">>", shift_right_op).
+two_char_punctuator("==", equals_op).
+two_char_punctuator("!=", not_equals_op).
 
 
-is_js_punctuator(";").
-is_js_punctuator("=").
-is_js_punctuator("(").
-is_js_punctuator(")").
-is_js_punctuator("[").
-is_js_punctuator("]").
-is_js_punctuator("{").
-is_js_punctuator("}").
-is_js_punctuator(":").
-is_js_punctuator(",").
-is_js_punctuator(".").
-is_js_punctuator("+").
-is_js_punctuator("-").
-is_js_punctuator("~").
-is_js_punctuator("*").
-is_js_punctuator("/").
-is_js_punctuator("%").
-is_js_punctuator(">").
-is_js_punctuator("<").
-is_js_punctuator("!").
-is_js_punctuator("?").
-is_js_punctuator("&").
-is_js_punctuator("|").
-is_js_punctuator("^").
+is_js_punctuator(";", semicolon).
+is_js_punctuator("=", assign).
+is_js_punctuator("(", left_par).
+is_js_punctuator(")", right_par).
+is_js_punctuator("[", left_sbracket).
+is_js_punctuator("]", right_sbracket).
+is_js_punctuator("{", left_bracket).
+is_js_punctuator("}", right_bracket).
+is_js_punctuator(":", colon).
+is_js_punctuator(",", comma).
+is_js_punctuator(".", dot).
+is_js_punctuator("+", plus_op).
+is_js_punctuator("-", minus_op).
+is_js_punctuator("~", bit_not_op).
+is_js_punctuator("*", times_op).
+is_js_punctuator("/", div_op).
+is_js_punctuator("%", mod_op).
+is_js_punctuator(">", gt_op).
+is_js_punctuator("<", lt_op).
+is_js_punctuator("!", not_op).
+is_js_punctuator("?", question).
+is_js_punctuator("&", bit_and_op).
+is_js_punctuator("|", bit_or_op).
+is_js_punctuator("^", bit_xor_op).
 
 js_keyword(tok(id, Text, Position, Line, Lex), Token) :-
 	is_jskeyword(Text, Keyword),

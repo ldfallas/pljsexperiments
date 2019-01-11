@@ -5,7 +5,7 @@ test_lex_var_decl :-
    js_lex_string(`var x;`,
 		 [ tok(keyword, var_kw, _,_,_),
 		   tok(id, `x`, _,_,_),
-		   tok(punctuator, `;`,_,_,_) ]).
+		   tok(punctuator, semicolon,_,_,_) ]).
 
 test_lex_id_with_keyword_prefix_decl :-
    js_lex_string(`varx`,
@@ -29,11 +29,11 @@ test_lex_id5 :-
 
 test_lex_regex1 :-
    js_lex_string(`/a/`,
-		 [ tok(regex, regex_literal(`a`,``), _,_,_)]).
+		 [ tok(regex, regex_literal(`a`,[]), _,_,_)]).
 
 test_lex_regex_escape :-
-   js_lex_string(`/\b/`,
-		 [ tok(regex, regex_literal(`\b`,``), _,_,_)]).
+   js_lex_string(`/\\b/`,
+		 [ tok(regex, regex_literal(`\\b`,[]), _,_,_)]).
 
 test_lex_regex_escape2 :-
    js_lex_string(`/\\/[^\\/]*$/`,
@@ -42,11 +42,11 @@ test_lex_regex_escape2 :-
 
 test_lex_two_char_op :-
    js_lex_string(`+=`,
-		 [ tok(punctuator, `+=`, _,_,_)]).
+		 [ tok(punctuator, plus_eq_op, _,_,_)]).
 
 test_lex_two_char_op2 :-
    js_lex_string(`++`,
-		 [ tok(punctuator, `++`, _,_,_)]).
+		 [ tok(punctuator, plusp_op, _,_,_)]).
 
 
 test_lex_floating_point_number_1 :-
@@ -56,7 +56,7 @@ test_lex_floating_point_number_1 :-
 test_lex_dotted_id :-
    js_lex_string(`a.b`,
 		 [ tok(id, `a`, _,_,_),
-                   tok(punctuator, `.`, _,_,_),
+                   tok(punctuator, dot, _,_,_),
                    tok(id, `b`, _,_,_) ]).
 
 test_lex_numeric_literal :-
@@ -79,13 +79,13 @@ test_lex_operator_literal :-
    js_lex_string(`1+2*3/4-5`,
 		 [ 
                  tok(number, `1`, _,_,_),
-                 tok(punctuator, `+`, _,_,_),
+                 tok(punctuator, plus_op, _,_,_),
                  tok(number, `2`, _,_,_),
-                 tok(punctuator, `*`, _,_,_),
+                 tok(punctuator, times_op, _,_,_),
                  tok(number, `3`, _,_,_),
-                 tok(punctuator, `/`, _,_,_),
+                 tok(punctuator, div_op, _,_,_),
                  tok(number, `4`, _,_,_),
-                 tok(punctuator, `-`, _,_,_),
+                 tok(punctuator, minus_op, _,_,_),
                  tok(number, `5`, _,_,_)
                  ]).
 
@@ -95,17 +95,17 @@ test_lex_var_decl_with_init_with_comments :-
 x = 20;`,
 		 [ tok(keyword, var_kw, _,_,_),
 		   tok(id, `x`, _,_, [line_comment(`uno`,_)]),
-		   tok(punctuator, `=`,_,_,_),
+		   tok(punctuator, assign,_,_,_),
 		   tok(number,`20`,_,_,_),
-		   tok(punctuator, `;`,_,_,_) ]).
+		   tok(punctuator, semicolon,_,_,_) ]).
 
 test_lex_var_decl_with_init :-
    js_lex_string(`var x = 20;`,
 		 [ tok(keyword, var_kw, _,_,_),
 		   tok(id, `x`, _,_,_),
-		   tok(punctuator, `=`,_,_,_),
+		   tok(punctuator, assign,_,_,_),
 		   tok(number,`20`,_,_,_),
-		   tok(punctuator, `;`,_,_,_) ]).
+		   tok(punctuator, semicolon,_,_,_) ]).
 
 test_lex_simple_obj_literal :-
    js_lex_string(`{
@@ -116,20 +116,20 @@ test_lex_simple_obj_literal :-
         }
     }`,
 
-    [ tok(punctuator, `{`, _,_,_),
+    [ tok(punctuator, left_bracket, _,_,_),
 
       tok(string, `"on_keyup"`,_,_,_),
-      tok(punctuator, `:`, _,_,_),
+      tok(punctuator, colon, _,_,_),
       tok(keyword, function_kw,_,_,_),
-      tok(punctuator, `(`, _,_,_),
+      tok(punctuator, left_par, _,_,_),
       tok(id, `event`,_,_,_),
-      tok(punctuator, `)`, _,_,_),
-      tok(punctuator, `{`, _,_,_),
+      tok(punctuator, right_par, _,_,_),
+      tok(punctuator, left_bracket, _,_,_),
       tok(keyword, return_kw,_,_,_),
       tok(keyword, true_kw,_,_,_),
-      tok(punctuator, `}`, _,_,_),
+      tok(punctuator, right_bracket, _,_,_),
 
-      tok(punctuator, `}`, _,_,_)
+      tok(punctuator, right_bracket, _,_,_)
     ]).
 
 test_lex_simple_block_comment :-
@@ -141,20 +141,20 @@ test_lex_simple_block_comment :-
         }
     }`,
 
-    [ tok(punctuator, `{`, _,_,_),
+    [ tok(punctuator, left_bracket, _,_,_),
 
       tok(string, `"on_keyup"`,_,_,_),
-      tok(punctuator, `:`, _,_,_),
+      tok(punctuator, colon, _,_,_),
       tok(keyword, function_kw,_,_,_),
-      tok(punctuator, `(`, _,_,_),
+      tok(punctuator, left_par, _,_,_),
       tok(id, `event`,_,_,_),
-      tok(punctuator, `)`, _,_,_),
-      tok(punctuator, `{`, _,_,_),
+      tok(punctuator, right_par, _,_,_),
+      tok(punctuator, left_bracket, _,_,_),
       tok(keyword, return_kw,_,_,_),
       tok(keyword, true_kw,_,_,_),
-      tok(punctuator, `}`, _,_,_),
+      tok(punctuator, right_bracket, _,_,_),
 
-      tok(punctuator, `}`, _,_,_)
+      tok(punctuator, right_bracket, _,_,_)
     ]).
 
 
@@ -163,13 +163,13 @@ test_lex_line_numbers1 :-
    2,
    
    3]`,
-		 [ tok(punctuator, `[`, _,1,_),
+		 [ tok(punctuator, left_sbracket, _,1,_),
                    tok(number, `1`, _,1,_),
-                   tok(punctuator, `,`, _,1,_),
+                   tok(punctuator, comma, _,1,_),
                    tok(number, `2`, _,2,_),
-                   tok(punctuator, `,`, _,2,_),
+                   tok(punctuator, comma, _,2,_),
                    tok(number, `3`, _,4,_),
-                   tok(punctuator, `]`, _,4,_)
+                   tok(punctuator, right_sbracket, _,4,_)
                     ]).
 
 test_lex_line_numbers2 :-
@@ -177,11 +177,11 @@ test_lex_line_numbers2 :-
       comment
    */ 
    3]`,
-		 [ tok(punctuator, `[`, _,1,_),
+		 [ tok(punctuator, left_sbracket, _,1,_),
                    tok(number, `1`, _,1,_),
-                   tok(punctuator, `,`, _,1,_),
+                   tok(punctuator, comma, _,1,_),
                    tok(number, `3`, _,4,_),
-                   tok(punctuator, `]`, _,4,_)
+                   tok(punctuator, right_sbracket, _,4,_)
                     ]).
 
 test_parse_basic_literal :-
@@ -423,7 +423,7 @@ test_parse_postfix_expression1 :-
        `x++`,
         js_postfix_expression( 
             js_identifier(`x`, _),
-            `++`
+            plusp_op
             ,  _)).
 
 test_parse_delete_expression :-
@@ -439,7 +439,7 @@ test_parse_multiplication1:-
    parse_js_expression_string(
        `x * y`,
         js_binary_operation( 
-            `*`,
+            times_op,
             js_identifier(`x`, _),
             js_identifier(`y`, _)
             ,  _)).
@@ -448,9 +448,9 @@ test_parse_multiplication2:-
    parse_js_expression_string(
        `x * y * z`,
         js_binary_operation( 
-            `*`,
+            times_op,
             js_binary_operation( 
-               `*`,
+               times_op,
                js_identifier(`x`, _),
                js_identifier(`y`, _),
                _),
@@ -461,9 +461,9 @@ test_parse_multiplication3:-
    parse_js_expression_string(
        `x % y / z`,
         js_binary_operation( 
-            `/`,
+            div_op,
             js_binary_operation( 
-               `%`,
+               mod_op,
                js_identifier(`x`, _),
                js_identifier(`y`, _),
                _),
@@ -474,7 +474,7 @@ test_parse_additive1 :-
    parse_js_expression_string(
        `x + y`,
        js_binary_operation( 
-          `+`,
+          plus_op,
           js_identifier(`x`, _),
           js_identifier(`y`, _),
           _)).
@@ -483,10 +483,10 @@ test_parse_additive2 :-
    parse_js_expression_string(
        `x + y * z`,
         js_binary_operation( 
-            `+`,
+            plus_op,
             js_identifier(`x`, _),
             js_binary_operation( 
-               `*`,
+               times_op,
                js_identifier(`y`, _),
                js_identifier(`z`, _),
                _) ,
@@ -496,7 +496,7 @@ test_parse_shift1 :-
    parse_js_expression_string(
        `x >> y`,
        js_binary_operation( 
-          `>>`,
+          shift_right_op,
           js_identifier(`x`, _),
           js_identifier(`y`, _),
           _)).
@@ -505,7 +505,7 @@ test_parse_shift2 :-
    parse_js_expression_string(
        `x << y`,
        js_binary_operation( 
-          `<<`,
+          shift_left_op,
           js_identifier(`x`, _),
           js_identifier(`y`, _),
           _)).
@@ -514,7 +514,7 @@ test_parse_shift3 :-
    parse_js_expression_string(
        `x >>> y`,
        js_binary_operation( 
-          `>>>`,
+          shift_right_1_op,
           js_identifier(`x`, _),
           js_identifier(`y`, _),
           _)).
@@ -524,7 +524,7 @@ test_parse_division1 :-
    parse_js_expression_string(
        `x / y`,
         js_binary_operation( 
-            `/`,
+            div_op,
             js_identifier(`x`, _),
             js_identifier(`y`, _)
             ,  _)).
@@ -534,9 +534,9 @@ test_parse_division2:-
    parse_js_expression_string(
        `x / y / z`,
         js_binary_operation( 
-            `/`,
+            div_op,
             js_binary_operation( 
-               `/`,
+               div_op,
                js_identifier(`x`, _),
                js_identifier(`y`, _),
                _),
@@ -547,7 +547,7 @@ test_parse_equality1 :-
    parse_js_expression_string(
        `x == y`,
         js_binary_operation( 
-            `==`,
+            equals_op,
             js_identifier(`x`, _),
             js_identifier(`y`, _)
             ,  _)).
@@ -556,12 +556,12 @@ test_parse_equality2 :-
    parse_js_expression_string(
        `1 + 2 == 1 + 1 + 1`,
         js_binary_operation( 
-            `==`, 
-            js_binary_operation(`+`, 
+            equals_op, 
+            js_binary_operation(plus_op, 
                js_literal(number,`1`, _), 
                js_literal(number,`2`, _), 
                _) ,
-            js_binary_operation(`+`, 
+            js_binary_operation(plus_op, 
                _, 
                _, 
                _)
@@ -732,14 +732,14 @@ test_for_statement :-
        js_for( 
            js_for_init(var,[js_var_decl(`x`,js_literal(number,`1`,_),_)],_),
            js_for_condition(
-               js_binary_operation(`<`,
+               js_binary_operation(lt_op,
                                    js_identifier(`x`, _),
                                    js_literal(number, _, _),
                                    _)),
            js_for_increment(
                js_postfix_expression(
                    js_identifier(`x`,_),
-                   `++`,
+                   plusp_op,
                    _
                )),
            js_return(js_literal(number,`1`, _),_),
