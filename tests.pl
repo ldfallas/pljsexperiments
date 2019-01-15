@@ -205,7 +205,7 @@ test_parse_newExpr3:-
    parse_js_expression_string(`new Foo().x`,
       js_dotted_access(
           js_new( js_identifier(`Foo`,_),js_arguments([],_),  _),
-          js_identifier(`x`, _),_)
+          js_id_name(`x`, _),_)
            ).
 
 test_parse_array_literal1 :-
@@ -287,7 +287,7 @@ test_parse_array_access4 :-
         js_array_access( 
            js_dotted_access( 
                js_identifier(`a`,_),
-               js_identifier(`b`,_),  _),
+               js_id_name(`b`,_),  _),
            js_identifier(`c`,_),_)).
 
 
@@ -296,7 +296,7 @@ test_parse_dotted_access1 :-
        `a.b`,
         js_dotted_access( 
             js_identifier(`a`,_),
-            js_identifier(`b`,_),  _)).
+            js_id_name(`b`,_),  _)).
 
 test_parse_dotted_access2 :-
    parse_js_expression_string(
@@ -304,8 +304,8 @@ test_parse_dotted_access2 :-
         js_dotted_access( 
            js_dotted_access( 
                js_identifier(`a`,_),
-               js_identifier(`b`,_),  _),
-           js_identifier(`c`,_),_)).
+               js_id_name(`b`,_),  _),
+           js_id_name(`c`,_),_)).
 
 test_parse_dotted_access3 :-
    parse_js_expression_string(
@@ -314,7 +314,7 @@ test_parse_dotted_access3 :-
            js_array_access( 
                js_identifier(`a`,_),
                js_identifier(`b`,_),  _),
-           js_identifier(`c`,_),_)).
+           js_id_name(`c`,_),_)).
 
 test_parse_dotted_access4 :-
    parse_js_expression_string(
@@ -327,11 +327,11 @@ test_parse_dotted_access4 :-
                      js_array_access( 
                         js_identifier(`a`,_),
                         js_identifier(`b`,_),  _),
-                     js_identifier(`c`,_),_),
-                  js_identifier(`e`,_),_),
+                     js_id_name(`c`,_),_),
+                  js_id_name(`e`,_),_),
                js_identifier(`x`,_),_),
-            js_identifier(`y`,_),_),
-         js_identifier(`j`,_),_)).
+            js_id_name(`y`,_),_),
+         js_id_name(`j`,_),_)).
 
 
 
@@ -356,7 +356,7 @@ test_parse_call_expression2 :-
         js_call( 
             js_identifier(`foo`, _),
             js_arguments([], _),  _),
-         js_identifier(`x`,_), _)).
+         js_id_name(`x`,_), _)).
 
 test_parse_call_expression3 :-
    parse_js_expression_string(
@@ -376,7 +376,7 @@ test_parse_call_expression4 :-
         js_call( 
             js_identifier(`foo`, _),
             js_arguments([], _),  _),
-        js_identifier(`goo`,_), _),
+        js_id_name(`goo`,_), _),
        js_arguments([], _),_)).
 
 test_parse_call_expression5 :-
@@ -432,7 +432,7 @@ test_parse_delete_expression :-
         js_delete_expression( 
             js_dotted_access( 
                js_identifier(`a`,_),
-               js_identifier(`b`,_), _)
+               js_id_name(`b`,_), _)
             ,  _)).
 
 test_parse_multiplication1:-
@@ -443,6 +443,15 @@ test_parse_multiplication1:-
             js_identifier(`x`, _),
             js_identifier(`y`, _)
             ,  _)).
+
+test_comma :-
+   parse_js_expression_string(
+       `x, y`,
+        js_comma( 
+            js_identifier(`x`, _),
+            js_identifier(`y`, _)
+            )).
+
 
 test_parse_multiplication2:-
    parse_js_expression_string(
@@ -745,6 +754,27 @@ test_for_statement :-
            js_return(js_literal(number,`1`, _),_),
             _)).
 
+test_for_statement_no_init :-
+   parse_js_stat_string(
+       `for (;x < 10;x++)
+           return 1;`,
+       js_for( 
+           js_for_init(),
+           js_for_condition(
+               js_binary_operation(lt_op,
+                                   js_identifier(`x`, _),
+                                   js_literal(number, _, _),
+                                   _)),
+           js_for_increment(
+               js_postfix_expression(
+                   js_identifier(`x`,_),
+                   plusp_op,
+                   _
+               )),
+           js_return(js_literal(number,`1`, _),_),
+            _)).
+
+
 
 test_if_statement_with_else :-
    parse_js_stat_string(
@@ -907,6 +937,7 @@ run_tests :-
         run_test(test_if_statement_with_else),
         run_test(test_if_statement_no_else),
         run_test(test_for_statement),
+        run_test(test_for_statement_no_init),        
         run_test(test_switch_statement),
         run_test(test_while_statement),
         run_test(test_do_while_statement),
@@ -914,6 +945,7 @@ run_tests :-
         run_test(test_try_finally_stat),
         run_test(test_try_catch_stat),
         run_test(test_basic_automatic_semicolon_insertion),
+        run_test(test_comma),
         run_test(test_simple_block).
 
         /*,

@@ -372,7 +372,7 @@ is_jskeyword("try", try_kw).
 is_jskeyword("throw", throw_kw).
 is_jskeyword("finally", finally_kw).
 is_jskeyword("default", default_kw).
-
+is_jskeyword("in", in_kw).
 
 toks([Tok|[Sep|Rest]]) -->
 	tok(Tok),
