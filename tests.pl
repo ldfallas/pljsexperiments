@@ -199,7 +199,7 @@ test_parse_newExpr1:-
    parse_js_expression_string(`new Foo()`,js_new( js_identifier(`Foo`,_), js_arguments([],_) , _) ).
 
 test_parse_newExpr2:-
-   parse_js_expression_string(`new Foo`,js_new( js_identifier(`Foo`,_),  _) ).
+   parse_js_expression_string(`new Foo`,js_new( js_identifier(`Foo`,_),no_args(),  _) ).
 
 test_parse_newExpr3:-
    parse_js_expression_string(`new Foo().x`,
