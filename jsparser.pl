@@ -383,8 +383,9 @@ js_new_object_expression_args(js_new(Expr, Args , lex_info(Line, PreTokenWhitesp
    js_new_expression(Expr),
    (js_arguments(Args) ; {Args = no_args()}).
 
-js_arguments(js_arguments(Args, lex_info(Line1, PreTokenWhitespace1))) -->
-    [tok(punctuator, left_par, _, Line1, PreTokenWhitespace1)],
+js_arguments(js_arguments(Args, lex_info(Line1, PreTokenWhitespace1,
+                                         Line2, PreTokenWhitespace2))) -->
+   [tok(punctuator, left_par, _, Line1, PreTokenWhitespace1)],
    js_argument_list(Args),
    [tok(punctuator, right_par, _, Line2, PreTokenWhitespace2)].
 
@@ -504,12 +505,20 @@ js_statement(Ast) -->
 
 js_next_token_is_valid, [tok(Kind,Value,Pos,Line,Ws)] -->
     [tok(Kind,Value,Pos,Line,Ws)], {\+ ( Value =  function_kw ;
-                                        Value =  left_bracket)}.
+                                         Value =  left_bracket)}.
+
+js_automatic_semicolon_insertion(_), [tok(Kind,Value,C,Line,D)] -->
+    [tok(Kind, Value, C, Line, D)],
+    { Kind  = punctuator, Value = right_bracket }, !.
+
+js_automatic_semicolon_insertion(js_call(_,js_arguments(_, lex_info(_,_,LastLine,_)),_)), [tok(Kind,Value,C,Line,D)] -->
+    [tok(Kind,Value,Pos,NewLine,Ws)], { NewLine > LastLine }.
 
 js_expr_statement(js_expr_stat(Call)) -->
     js_next_token_is_valid,
     js_call_expression(Call),
-    [tok(punctuator, semicolon, _, _, _)].
+    (([tok(punctuator, semicolon, _, _, _)], !)
+     ; (js_automatic_semicolon_insertion(Call))).
 
 js_expr_statement(js_expr_stat(Asg)) -->
     js_next_token_is_valid,
