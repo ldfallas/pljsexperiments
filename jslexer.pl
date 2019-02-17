@@ -388,8 +388,8 @@ toks2([Tok|Rest], PreviousToken) -->
 	tok(Tok, PreviousToken),!,
 	toks2(Rest, Tok).
 toks2([], _),[X,Y,Z] --> lexical_whitespace,[X,Y,Z], \+ [_].
-toks2([], _) -->[_, Line, _], [A,B,C], {  throw(unexpectedInput(line(Line), [A,B,C])) }.
-toks2([], _) -->[_, Line, _], { throw(unexpectedInput(line(Line))) }.
+toks2([], _) -->[_, Line, _], [A,B,C], {  throw(parser_exception(unexpectedInput, line(Line, [A,B,C]))) }.
+toks2([], _) -->[_, Line, _], { throw(parser_exception(unexpectedInput, line(Line))) }.
 
 lexical_whitespace, [NewPosition, Line, NewWhitespace] -->
 	lex_whitespace_elements(NewWhitespace),

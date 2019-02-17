@@ -345,7 +345,7 @@ js_statement_block(js_block(Stats, lex_info(Line,PreTokenWhitespace ))) -->
      (
          [tok(punctuator, right_bracket, _, _, _)]
      ; ( [tok(_, _, _, CurrLine, _)],
-         throw(parser_exception(expectingValidStatement, line(CurrLine))))).
+         { throw(parser_exception(expectingValidStatement, line(CurrLine))) })).
 
 js_statement_sequence([First|Rest]) -->
     js_statement(First),
