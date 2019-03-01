@@ -3,6 +3,11 @@
 
 use_module(library(memfile)).
 
+binary_operator_string(gt_op, ">").
+binary_operator_string(gt_eq_op, ">=").
+binary_operator_string(lt_op, "<").
+binary_operator_string(lt_eq_op, "<=").
+binary_operator_string(equals_op, "==").
 
 
 print_js_ast_to_string(Ast, Result) :-
@@ -23,15 +28,33 @@ printing_js_ast(js_if(Condition, ThenStat, ElseStat, _),
                 Level) :-
     write(Stream, "if ("),
     printing_js_ast(Condition, Stream, Level),
-    write(Stream, ") \n"),
-    NewLevel is Level + 1,
-    print_indentation(NewLevel, Stream),
-    printing_js_ast(ThenStat, Stream, NewLevel),
-    write(Stream, "\n"),
+
+    ((ThenStat = js_block(_, _),
+      write(Stream, ") "),
+      printing_js_ast(ThenStat, Stream, Level),
+      write(Stream, " "),
+      !) ;
+     (write(Stream, ") \n"),
+      NewLevel is Level + 1,
+      print_indentation(NewLevel, Stream),
+      printing_js_ast(ThenStat, Stream, NewLevel))),
     print_indentation(Level, Stream),
-    write(Stream, "else\n"),
-    print_indentation(NewLevel, Stream),    
-    printing_js_ast(ElseStat, Stream, NewLevel), !.
+    printing_js_ast(js_tmp_else(ElseStat), Stream, Level),
+    !.
+
+printing_js_ast(js_tmp_else(js_block(Instructions, Lex)),
+                Stream,
+                Level) :-
+    write(Stream, "else "),
+    printing_js_ast(js_block(Instructions, Lex), Stream, Level).
+
+printing_js_ast(js_tmp_else(Stat),
+                Stream,
+                _) :-
+    write(Stream, "else "),
+    print_indentation(NewLevel, Stream),
+    printing_js_ast(Stat, Stream, NewLevel).
+
 
 printing_js_ast(js_if(Condition, ThenStat, _),
                 Stream,
@@ -96,14 +119,27 @@ printing_js_ast(js_do_while(Condition, Body, _),
     write(Stream, ");").
 
 printing_js_ast(js_while(Condition, Body, _),
-                         Stream,
-                         Level) :-
+                Stream,
+                Level) :-
     write(Stream, "while("),
-    print_js_ast(Condition, Stream, Level),
+    printing_js_ast(Condition, Stream, Level),
     write(Stream, ")\n"),
     NewLevel is Level + 1,
     print_indentation(NewLevel, Stream),    
     printing_js_ast(Body, Stream, NewLevel).
+
+printing_js_ast(js_binary_operation(Operator,
+                                    LeftExpr,
+                                    RightExpr,
+                                    _),
+                Stream,
+                Level) :-
+    printing_js_ast(LeftExpr, Stream, Level),
+    write(Stream, " "),
+    binary_operator_string(Operator, OperatorString),
+    write(Stream, OperatorString),
+    write(Stream, " "),    
+    printing_js_ast(RightExpr, Stream, Level).
 
 printing_js_ast(js_identifier(Id, _), Stream, _) :-
     string_codes(Str, Id),
@@ -113,11 +149,21 @@ printing_js_ast(js_literal(_, LiteralTxt, _), Stream, _) :-
     string_codes(Str, LiteralTxt),
     write(Stream, Str).
 
+printing_js_ast(js_assign(Left, Right, _), Stream, _) :-
+    printing_js_ast(Left, Stream, Left),
+    write(Stream, " = "),
+    printing_js_ast(Left, Stream, Right).
+
 printing_js_ast(js_call(Method, Arguments, _), Stream, Level) :-
     printing_js_ast(Method, Stream, Level),
     printing_js_ast(Arguments, Stream, Level).
 
-printing_js_ast(js_expr_stat(Expr, _), Stream, Level) :-
+printing_js_ast(js_arguments(Args, _), Stream, Level) :-
+    write(Stream, "("),
+    printing_js_ast_elements_separator_noindent(Args, ", ", Stream, Level),
+    write(Stream, ")").
+
+printing_js_ast(js_expr_stat(Expr), Stream, Level) :-
     printing_js_ast(Expr, Stream, Level),
     write(Stream, ";\n").
 
@@ -127,18 +173,49 @@ printing_js_ast(js_break(_), Stream, _) :-
 printing_js_ast(js_return(_), Stream, _) :-
     write(Stream, "return;\n").
 
-printing_js_ast(js_var_stat(Decls, _), Stream, _) :-
-    write(Stream, "var ").
+printing_js_ast(js_return(Expr, _), Stream, Level) :-
+    write(Stream, "return "),
+    printing_js_ast(Expr, Stream, Level),
+    write(Stream, ";\n").
+
+
+printing_js_ast(js_var_stat(Decls, _), Stream, Level) :-
+    write(Stream, "var "),
+    printing_js_ast_elements_separator_noindent(
+        Decls,
+        ", ",
+        Stream,
+        Level),
+    !.
+
+printing_js_ast(js_var_decl(Name, InitValue,_), Stream, Level) :-
+    write(Stream, Name),
+    write(Stream, " = "),
+    printing_js_ast(InitValue, Stream, Level).
+
+printing_js_ast(js_var_decl(Name, _), Stream, _) :-
+    write(Stream, Name).
+
+printing_js_ast(js_block(Instructions, _), Stream, Level) :-
+    write(Stream, "{\n"),
+    NewLevel is Level + 1,
+    printing_js_ast_elements_separator(
+        Instructions,
+        "\n",
+        Stream,
+        NewLevel),
+    print_indentation(Level, Stream),
+    write(Stream, "}").
+
 
 printing_js_ast(Ast, Stream, _) :-
     write(Stream, "Could not print: "),
     write(Stream, Ast).
 
-
 printing_js_ast_elements([], _, _).
 printing_js_ast_elements([E|Rest], Stream, Level) :-
     print_indentation(Level, Stream),
-    printing_js_ast(E, Stream, Level),
+    printing_js_ast(E, Stream, Level),!,
     printing_js_ast_elements(Rest, Stream, Level).
 
 printing_js_ast_elements_separator([],_ , _, _).
@@ -147,9 +224,25 @@ printing_js_ast_elements_separator([E|Rest],
                                    Stream,
                                    Level) :-
     print_indentation(Level, Stream),
+    printing_js_ast(E, Stream, Level), !,
+    ( Rest = [],! ;
+      ( write(Stream, Separator),
+        printing_js_ast_elements_separator(
+            Rest,
+            Separator,
+            Stream,
+            Level))).
+
+printing_js_ast_elements_separator_noindent([],_ , _, _).
+printing_js_ast_elements_separator_noindent([E|Rest],
+                                   Separator,
+                                   Stream,
+                                   Level) :-
     printing_js_ast(E, Stream, Level),
-    ( Rest = [] , 
-    printing_js_ast_elements(Rest, Stream, Level)).
+    ( Rest = [] ,
+      (write(Stream, Separator),
+       printing_js_ast_elements(Rest, Stream, Level))).
+
 
 
 print_indentation(0, _) :- !.
@@ -158,24 +251,4 @@ print_indentation(Level, Stream) :-
     NewLevel is Level - 1,
     print_indentation(NewLevel, Stream), !.
 
-switch_if_cases(_, [js_default(Body,_)],
-                js_block(Body, _)).
 
-switch_if_cases(Variable,
-                [js_case(Value, Body, _)|Rest],
-                js_if(js_binary_operation(
-                          equals_op,
-                          Variable,
-                          Value,
-                          _),
-                      js_block(Body, _),
-                      RestIf,
-                      _)) :-
-     switch_if_cases(Variable, Rest, RestIf).
-                      
-
-switch_if(js_switch(Variable,
-                    Cases,
-                   _),
-          IfStat) :-
-       switch_if_cases(Variable, Cases, IfStat).
